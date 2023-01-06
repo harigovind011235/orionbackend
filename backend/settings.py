@@ -11,7 +11,7 @@ SECRET_KEY = 'sap8d1y5xj-z@y10y4yh&njdm(v8-ka_08rf%n3kf-h5$97j+4'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['194.163.159.41']
+ALLOWED_HOSTS = ['194.163.159.41','127.0.0.1']
 
 
 # Application definition
@@ -154,12 +154,12 @@ STATIC_URL = '/static/'
 MEDIA_URL = '/images/'
 
 import os
-STATIC_ROOT = os.path.join(BASE_DIR, 'static', 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 STATICFILES_DIRS= [
-    BASE_DIR / 'static'
+    BASE_DIR / 'assets'
 ]
 
-MEDIA_ROOT = 'static/images'
+MEDIA_ROOT = 'assets/images'
 
 CORS_ALLOW_ALL_ORIGINS = True

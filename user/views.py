@@ -50,7 +50,7 @@ def getAllUsers(request):
         page_query_param = 'page'
 
     paginator = EmployeePagination()
-    all_employees = Employee.objects.all()
+    all_employees = Employee.objects.all().order_by('date_of_joining')
     result_page = paginator.paginate_queryset(all_employees, request)
     serializer = EmployeeSerializer(result_page, many=True)
     return paginator.get_paginated_response(serializer.data)
