@@ -7,6 +7,8 @@ from .serializers import EmployeeSerializer,LeaveSerializer,DailyHourSerializer,
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import datetime
 import json
@@ -36,6 +38,7 @@ def getUserRoutes(request):
         {'DELETE': 'api/user/id/deleteleave'},
         {'GET':'api/user/id/dailyhours'},
         {'POST': 'api/user/id/dailyhours'},
+        {'POST': 'api/user/id/changepassword'},
     ]
 
     return Response(routes)
@@ -64,6 +67,31 @@ def getProfile(request,id):
     serializer = EmployeeSerializer(profile,many=False)
     return Response(serializer.data)
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def getChangePassword(request,id):
+    if request.method == 'POST':
+        employee = Employee.objects.get(pk=id)
+        user = User.objects.get(password=employee.user.password)
+
+        try:
+            changepassword_data = json.loads(request.body)
+        except Exception as e:
+            changepassword_data = None
+            print(e)
+        print(changepassword_data)
+
+        current_password = changepassword_data.get('current_password')
+        new_password = changepassword_data.get('new_password')
+
+        print("current_password",current_password)
+        print("new_password",new_password)
+        user.set_password(new_password)
+        user.save()
+
+        # Update the session authentication hash to prevent the user from being logged out
+        update_session_auth_hash(request, user)
+        return Response("Successfully change the password")
 
 @api_view(['GET','POST'])
 @permission_classes([IsAuthenticated])

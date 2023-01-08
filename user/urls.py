@@ -12,4 +12,5 @@ urlpatterns = [
     path('<str:id>/remainingleaves',views.getRemainingLeaves,name="remainingleaves"),
     path('<str:id>/dailyhours',views.getDailyHours,name="dailyhours"),
     path('login/', views.MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('<str:id>/changepassword', views.getChangePassword, name="changepassword"),
 ]
