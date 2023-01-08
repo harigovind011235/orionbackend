@@ -103,12 +103,13 @@ def getRemainingLeaves(request,id):
         return Response({})
 
 
-@api_view(['POST'])
+@api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
-def getLeavesDelete(request, id):
+def getLeavesDelete(request,id):
+
     employee_leave = Leave.objects.get(pk=id)
 
-    if request.method == 'POST':
+    if request.method == 'DELETE':
         if employee_leave.status == False:
             employee_leave.delete()
             return Response("delete one leave")
