@@ -33,7 +33,7 @@ def getUserRoutes(request):
         {'POST': 'api/user/id'},
         {'GET':'api/user/id/leavestatus'},
         {'POST': 'api/user/id/leavestatus'},
-        {'POST': 'api/user/id/deleteleave'},
+        {'DELETE': 'api/user/id/deleteleave'},
         {'GET':'api/user/id/dailyhours'},
         {'POST': 'api/user/id/dailyhours'},
     ]
@@ -105,14 +105,14 @@ def getRemainingLeaves(request,id):
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
-def getLeavesDelete(request,id):
+def leavesDelete(request,id):
 
     employee_leave = Leave.objects.get(pk=id)
 
     if request.method == 'DELETE':
         if employee_leave.status == False:
             employee_leave.delete()
-            return Response("delete one leave")
+            return Response("deleted one leave")
         else:
             return Response("Already Approved")
 
