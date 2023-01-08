@@ -141,6 +141,14 @@ def getDailyHours(request,id):
             lastentried_dailyhour.save()
             return Response('Success')
 
+    class DailyHourpagination(PageNumberPagination):
+        page_size = 5
+        page_size_query_param = 'page_size'
+        max_page_size = 1000
+        page_query_param = 'page'
+
+    paginator = DailyHourpagination()
     employee_dailyhours = employee.dailyhour_set.all()
-    serializer = DailyHourSerializer(employee_dailyhours,many=True)
-    return Response(serializer.data)
+    result_page = paginator.paginate_queryset(employee_dailyhours, request)
+    serializer = DailyHourSerializer(result_page, many=True)
+    return paginator.get_paginated_response(serializer.data)
