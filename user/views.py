@@ -7,6 +7,9 @@ from .serializers import EmployeeSerializer,LeaveSerializer,DailyHourSerializer,
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.models import User
+from django.contrib import messages
 from django.utils import timezone
 from datetime import datetime
 import json
@@ -36,6 +39,7 @@ def getUserRoutes(request):
         {'DELETE': 'api/user/id/deleteleave'},
         {'GET':'api/user/id/dailyhours'},
         {'POST': 'api/user/id/dailyhours'},
+        {'POST': 'api/user/id/changepassword'},
     ]
 
     return Response(routes)
@@ -63,6 +67,33 @@ def getProfile(request,id):
     profile = Employee.objects.get(pk=id)
     serializer = EmployeeSerializer(profile,many=False)
     return Response(serializer.data)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def setChangePassword(request,id):
+    if request.method == 'POST':
+        employee = Employee.objects.get(pk=id)
+        user = employee.user
+
+        try:
+            changepassword_data = json.loads(request.body)
+        except:
+            changepassword_data = None
+        if changepassword_data:
+            current_password = changepassword_data.get('current_password')
+            new_password = changepassword_data.get('new_password')
+
+
+            if employee.user.check_password(current_password):
+                user.set_password(new_password)
+                user.save()
+                messages.success(request, 'Your password was successfully updated!')
+
+                # Update the session authentication hash to prevent the user from being logged out
+                update_session_auth_hash(request, user)
+                return Response("Successfully change the password")
+            else:
+                return Response("Password doesn't match")
 
 
 @api_view(['GET','POST'])
