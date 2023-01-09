@@ -9,6 +9,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
+from django.contrib import messages
 from django.utils import timezone
 from datetime import datetime
 import json
@@ -69,29 +70,31 @@ def getProfile(request,id):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def getChangePassword(request,id):
+def setChangePassword(request,id):
     if request.method == 'POST':
         employee = Employee.objects.get(pk=id)
         user = User.objects.get(password=employee.user.password)
 
         try:
             changepassword_data = json.loads(request.body)
-        except Exception as e:
+        except:
             changepassword_data = None
-            print(e)
-        print(changepassword_data)
+        if changepassword_data:
+            current_password = changepassword_data.get('current_password')
+            new_password = changepassword_data.get('new_password')
 
-        current_password = changepassword_data.get('current_password')
-        new_password = changepassword_data.get('new_password')
 
-        print("current_password",current_password)
-        print("new_password",new_password)
-        user.set_password(new_password)
-        user.save()
+            if employee.user.check_password(current_password):
+                messages.success(request, 'Your password was successfully updated!')
+                user.set_password(new_password)
+                user.save()
 
-        # Update the session authentication hash to prevent the user from being logged out
-        update_session_auth_hash(request, user)
-        return Response("Successfully change the password")
+                # Update the session authentication hash to prevent the user from being logged out
+                update_session_auth_hash(request, user)
+                return Response("Successfully change the password")
+            else:
+                return Response("Password doesn't match")
+
 
 @api_view(['GET','POST'])
 @permission_classes([IsAuthenticated])
