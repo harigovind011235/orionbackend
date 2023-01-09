@@ -73,7 +73,7 @@ def getProfile(request,id):
 def setChangePassword(request,id):
     if request.method == 'POST':
         employee = Employee.objects.get(pk=id)
-        user = User.objects.get(password=employee.user.password)
+        user = employee.user
 
         try:
             changepassword_data = json.loads(request.body)
