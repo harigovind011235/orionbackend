@@ -85,9 +85,9 @@ def setChangePassword(request,id):
 
 
             if employee.user.check_password(current_password):
-                messages.success(request, 'Your password was successfully updated!')
                 user.set_password(new_password)
                 user.save()
+                messages.success(request, 'Your password was successfully updated!')
 
                 # Update the session authentication hash to prevent the user from being logged out
                 update_session_auth_hash(request, user)
