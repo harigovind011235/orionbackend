@@ -14,7 +14,7 @@ numeric = RegexValidator(r'^[0-9+]', 'Only digit characters.')
 
 class Employee(models.Model):
     user = models.OneToOneField(User,on_delete=models.CASCADE,null=True,blank=True)
-    employee_id = models.CharField(max_length=30,blank=True,null=True)
+    employee_id = models.CharField(max_length=40,blank=True,null=True)
     name = models.CharField(max_length=30,blank=True,null=True)
     email = models.EmailField(max_length=200,blank=True,null=True)
     bio = models.TextField(null=True,blank=True)
