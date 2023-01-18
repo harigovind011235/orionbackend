@@ -5,6 +5,7 @@ from . import views
 
 urlpatterns = [
     path('routes',views.getUserRoutes,name="user-routes"),
+    path('all-leave-requests',views.getAllPendingLeaves,name="allpendingleaves"),
     path('all',views.getAllUsers,name="allusers"),
     path('<str:id>',views.getProfile,name="profile"),
     path('<str:id>/leavestatus',views.getLeaves,name="leaves"),

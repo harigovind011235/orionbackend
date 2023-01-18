@@ -25,3 +25,13 @@ class RemainingLeavesSerializer(serializers.ModelSerializer):
     class Meta:
         model = RemainingLeave
         fields = '__all__'
+
+class PendingLeaveSerializer(serializers.Serializer):
+    employee_name = serializers.SerializerMethodField()
+    count = serializers.SerializerMethodField()
+
+    def get_employee_name(self, obj):
+        return obj['employee__name']
+
+    def get_count(self, obj):
+        return obj['count']
