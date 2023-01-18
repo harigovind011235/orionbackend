@@ -41,6 +41,7 @@ class HolidayAdmin(admin.ModelAdmin):
         ('date_of_holiday',DropdownFilter)
     ]
     search_fields = ['event']
+    list_display = ('date_of_holiday', 'event')
 
 
 admin.site.register(Employee,EmployeeAdmin)
