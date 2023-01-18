@@ -85,4 +85,12 @@ class DailyHour(models.Model):
         return str(self.employee.name + " " + self.date_of_checkin)
 
 
+class HolidayCalender(models.Model):
+    date = models.DateField()
+    event = models.CharField(max_length=200,null=True,blank=True)
+    region = models.CharField(max_length=200,null=True,blank=True)
+    created = models.DateTimeField(auto_now_add=True,blank=True,null=True)
+    id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
 
+    def __str__(self):
+        return str(self.event+" "+self.region)
