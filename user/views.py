@@ -3,11 +3,12 @@ from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from .models import Employee,DailyHour,Leave,RemainingLeave
-from .serializers import EmployeeSerializer,LeaveSerializer,DailyHourSerializer,RemainingLeavesSerializer
+from .serializers import EmployeeSerializer,LeaveSerializer,DailyHourSerializer,RemainingLeavesSerializer, PendingLeaveSerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import update_session_auth_hash
+from django.db.models import Count
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.utils import timezone
@@ -21,6 +22,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         data = super().validate(attrs)
         data['username'] = self.user.employee.name
         data['userid'] = self.user.employee.id
+        data['is_staff'] = self.user.is_staff
         return data
 
 
@@ -44,6 +46,20 @@ def getUserRoutes(request):
 
     return Response(routes)
 
+@api_view(['GET'])
+def getAllPendingLeaves(request):
+
+    class AllPendingLeavesPagination(PageNumberPagination):
+        page_size = 20
+        page_size_query_param = 'page_size'
+        max_page_size = 1000
+        page_query_param = 'page'
+
+    paginator = AllPendingLeavesPagination()
+    pending_leaves = Leave.objects.filter(status=False).values('employee__name').annotate(count=Count('employee_id'))
+    result_page = paginator.paginate_queryset(pending_leaves, request)
+    serializer = PendingLeaveSerializer(result_page,many=True)
+    return Response(serializer.data)
 
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
