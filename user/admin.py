@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Leave,Employee,DailyHour,RemainingLeave
+from .models import Leave,Employee,DailyHour,RemainingLeave, HolidayCalender
 from django_admin_listfilter_dropdown.filters import (DropdownFilter)
 from django.contrib.admin import DateFieldListFilter
 from datetime import datetime
@@ -35,9 +35,16 @@ class DailyHourAdmin(admin.ModelAdmin):
     list_filter = (
         ('date_of_checkin', DateFieldListFilter),)
 
+class HolidayAdmin(admin.ModelAdmin):
+    ordering = ['date']
+    list_filter = [
+        ('date',DropdownFilter)
+    ]
+    search_fields = ['event']
+
 
 admin.site.register(Employee,EmployeeAdmin)
 admin.site.register(DailyHour,DailyHourAdmin)
 admin.site.register(Leave,LeaveAdmin)
 admin.site.register(RemainingLeave,RemainingLeaveAdmin)
-
+admin.site.register(HolidayCalender,HolidayAdmin)
