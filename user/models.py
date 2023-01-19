@@ -89,6 +89,7 @@ class Holiday(models.Model):
     date_of_holiday = models.DateField()
     event = models.CharField(max_length=200,null=True,blank=True)
     region_applicable = models.CharField(max_length=200,null=True,blank=True)
+    optional_holiday = models.BooleanField(default=False, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True,blank=True,null=True)
     id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
 
