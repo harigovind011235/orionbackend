@@ -42,6 +42,9 @@ def getUserRoutes(request):
         {'GET':'api/user/id/dailyhours'},
         {'POST': 'api/user/id/dailyhours'},
         {'POST': 'api/user/id/changepassword'},
+        {'GET': 'api/user/id/leave-requests'},
+        {'GET': 'api/user/all-leave-requests'},
+        {'GET': 'api/user/id/remainingleaves'},
     ]
 
     return Response(routes)
@@ -214,3 +217,11 @@ def getDailyHours(request,id):
     result_page = paginator.paginate_queryset(employee_dailyhours, request)
     serializer = DailyHourSerializer(result_page, many=True)
     return paginator.get_paginated_response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def getLeaveRequest(request, id):
+    employee = Employee.objects.get(pk=id)
+    leave_table = Leave.objects.filter(employee=employee,status=False)
+    serializer = LeaveSerializer(leave_table, many=True)
+    return Response(serializer.data)
