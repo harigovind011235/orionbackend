@@ -15,6 +15,7 @@ class LeaveAdmin(admin.ModelAdmin):
         ('status',DropdownFilter),
     ]
     search_fields = ['employee__name']
+    list_per_page = 20
 
 
 class EmployeeAdmin(admin.ModelAdmin):
@@ -22,6 +23,7 @@ class EmployeeAdmin(admin.ModelAdmin):
         ('name',DropdownFilter),
     ]
     search_fields = ['name']
+    list_per_page = 20
 
 
 class RemainingLeaveAdmin(admin.ModelAdmin):
@@ -32,8 +34,10 @@ class RemainingLeaveAdmin(admin.ModelAdmin):
 
 
 class DailyHourAdmin(admin.ModelAdmin):
+    ordering = ['-created']
     list_filter = (
         ('date_of_checkin', DateFieldListFilter),)
+    list_per_page = 20
 
 class HolidayAdmin(admin.ModelAdmin):
     ordering = ['date_of_holiday']
@@ -42,6 +46,7 @@ class HolidayAdmin(admin.ModelAdmin):
     ]
     search_fields = ['event']
     list_display = ('date_of_holiday', 'event')
+    list_per_page = 20
 
 
 admin.site.register(Employee,EmployeeAdmin)
