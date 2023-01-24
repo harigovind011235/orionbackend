@@ -213,7 +213,7 @@ def getDailyHours(request,id):
         page_query_param = 'page'
 
     paginator = DailyHourpagination()
-    employee_dailyhours = employee.dailyhour_set.all()
+    employee_dailyhours = employee.dailyhour_set.all().order_by('-created')
     result_page = paginator.paginate_queryset(employee_dailyhours, request)
     serializer = DailyHourSerializer(result_page, many=True)
     return paginator.get_paginated_response(serializer.data)
