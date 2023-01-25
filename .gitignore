@@ -1,2 +1,6 @@
 user/__pycache__/
+base/__pycache__/
+backend/__pycache__/
+dailyreads/__pycache__/
+user/migrations/
 *.sqlite3
