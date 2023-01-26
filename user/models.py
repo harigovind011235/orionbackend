@@ -60,8 +60,8 @@ class Leave(models.Model):
 class RemainingLeave(models.Model):
     employee = models.OneToOneField(Employee,on_delete=models.CASCADE,null=True,blank=True)
     casual_leave = models.IntegerField(default=12)
-    sick_leave = models.IntegerField(default=10)
-    emergency_leave = models.IntegerField(default=2)
+    sick_leave = models.IntegerField(default=7)
+    emergency_leave = models.IntegerField(default=1)
     comp_off = models.IntegerField(default=0)
     optional_holidays = models.IntegerField(default=2)
     created = models.DateTimeField(auto_now_add=True)
