@@ -108,8 +108,12 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'orionlive',
+        'USER': 'adminlabglo',
+        'PASSWORD': 'harry007',
+        'HOST': '194.163.159.41',
+        'PORT': '5432',
     }
 }
 
