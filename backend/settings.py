@@ -113,7 +113,7 @@ DATABASES = {
         'USER': 'adminlabglo',
         'PASSWORD': 'harry007',
         'HOST': '194.163.159.41',
-        'PORT': '5432',
+        'PORT': '5433',
     }
 }
 
