@@ -112,7 +112,7 @@ DATABASES = {
         'NAME': 'orionlive',
         'USER': 'adminlabglo',
         'PASSWORD': 'harry007',
-        'HOST': '194.163.159.41',
+        'HOST': '127.0.0.1',
         'PORT': '5432',
     }
 }
