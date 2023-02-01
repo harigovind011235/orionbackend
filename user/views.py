@@ -73,8 +73,11 @@ def getLeavesForApproval(request,id):
         data['leave_applied'] = leave.date_of_leave
         data['leave_notes'] = leave.leave_notes
         data['no_of_leaves'] = leave.no_of_leaves_required
+        data['leave_type'] = leave.leave_type
         pending_leaves.append(data)
     return Response(pending_leaves)
+
+
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 def getAllUsers(request):
