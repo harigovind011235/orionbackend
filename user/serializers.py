@@ -28,6 +28,7 @@ class RemainingLeavesSerializer(serializers.ModelSerializer):
 
 class PendingLeaveSerializer(serializers.Serializer):
     employee_name = serializers.SerializerMethodField()
+    employee_id = serializers.SerializerMethodField()
     count = serializers.SerializerMethodField()
 
     def get_employee_name(self, obj):
@@ -35,3 +36,6 @@ class PendingLeaveSerializer(serializers.Serializer):
 
     def get_count(self, obj):
         return obj['count']
+
+    def get_employee_id(self,obj):
+        return obj['employee_id']
