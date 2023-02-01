@@ -56,11 +56,25 @@ def getAllPendingLeaves(request):
         page_query_param = 'page'
 
     paginator = AllPendingLeavesPagination()
-    pending_leaves = Leave.objects.filter(status=False).values('employee__name').annotate(count=Count('employee_id'))
+    pending_leaves = Leave.objects.filter(status=False).values('employee__name','employee_id').annotate(count=Count('employee_id'))
     result_page = paginator.paginate_queryset(pending_leaves, request)
     serializer = PendingLeaveSerializer(result_page,many=True)
     return Response(serializer.data)
 
+
+@api_view(['GET'])
+def getLeavesForApproval(request,id):
+
+    employee = Employee.objects.get(pk=id)
+    employee_pending_leaves = employee.leave_set.filter(status=False)
+    pending_leaves = []
+    for leave in employee_pending_leaves:
+        data = {}
+        data['leave_applied'] = leave.date_of_leave
+        data['leave_notes'] = leave.leave_notes
+        data['no_of_leaves'] = leave.no_of_leaves_required
+        pending_leaves.append(data)
+    return Response(pending_leaves)
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 def getAllUsers(request):
