@@ -74,7 +74,9 @@ def getLeavesForApproval(request,id):
         data['leave_notes'] = leave.leave_notes
         data['no_of_leaves'] = leave.no_of_leaves_required
         data['leave_type'] = leave.leave_type
+        data['leave_id'] = leave.id
         pending_leaves.append(data)
+
     return Response(pending_leaves)
 
 
@@ -165,6 +167,19 @@ def getRemainingLeaves(request,id):
         return Response(serializer.data)
     else:
         return Response({})
+
+
+@api_view(['PUT'])
+def updateEmployeeLeave(request,id):
+    employee_leave = Leave.objects.get(pk=id)
+    try:
+        employee_leave.status = True
+        employee_leave.save()
+    except:
+        employee_leave.status = False
+        return Response("Failed")
+
+    return Response("Success")
 
 
 @api_view(['DELETE'])
