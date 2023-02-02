@@ -42,5 +42,7 @@ def getPreviousLeaveStatus(sender,instance,**kwargs):
             remainingleaves.comp_off -= int(noofleaves)
         elif leavetype == '5':
             remainingleaves.optional_holidays -= int(noofleaves)
+        elif leavetype == '6':
+            remainingleaves.casual_leave = remainingleaves.casual_leave - 0.5
 
         remainingleaves.save()
