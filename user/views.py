@@ -42,6 +42,8 @@ def getUserRoutes(request):
         {'GET':'api/user/id/dailyhours'},
         {'POST': 'api/user/id/dailyhours'},
         {'POST': 'api/user/id/changepassword'},
+        {'PUT': 'api/user/id/updateprofile'},
+        {'PUT': 'api/user/id/leavetable'},
     ]
 
     return Response(routes)
