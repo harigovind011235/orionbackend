@@ -181,6 +181,50 @@ def updateEmployeeLeave(request,id):
 
     return Response("Success")
 
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def setUpdateProfile(request, id):
+    if request.method == 'PUT':
+        employee = Employee.objects.get(pk=id)
+
+        try:
+            profile_data = json.loads(request.body)
+        except:
+            profile_data = None
+        if request.FILES:
+            employee.profile_image = request.FILES.get('profile_image')
+            employee.save()
+        if profile_data:
+            if profile_data.get('name') != None and profile_data.get('name') != ' ':
+                employee.name = profile_data.get('name')
+            if profile_data.get('employee_id') != None and profile_data.get('employee_id') != ' ':
+                employee.employee_id = profile_data.get('employee_id')
+            if profile_data.get('email') != None and profile_data.get('email') != ' ':
+                employee.email = profile_data.get('email')
+            if profile_data.get('bio') != None and profile_data.get('bio') != ' ':
+                employee.bio = profile_data.get('bio')
+            if profile_data.get('username') != None and profile_data.get('username') != ' ':
+                employee.username = profile_data.get('username')
+            if profile_data.get('location') != None and profile_data.get('location') != ' ':
+                employee.location = profile_data.get('location')
+            if profile_data.get('contact_no') != None and profile_data.get('contact_no') != ' ':
+                employee.contact_no = profile_data.get('contact_no')
+            if profile_data.get('alternate_contact') != None and profile_data.get('alternate_contact') != ' ':
+                employee.alternate_contact = profile_data.get('alternate_contact')
+            if profile_data.get('blood_group') != None and profile_data.get('blood_group') != ' ':
+                employee.blood_group = profile_data.get('blood_group')
+            if profile_data.get('designation') != None and profile_data.get('designation') != ' ':
+                employee.designation = profile_data.get('designation')
+            if profile_data.get('date_of_joining') != None and profile_data.get('date_of_joining') != ' ':
+                employee.date_of_joining = profile_data.get('date_of_joining')
+            if profile_data.get('dob') != None and profile_data.get('dob') != ' ':
+                employee.dob = profile_data.get('dob')
+            if profile_data.get('status') != None and profile_data.get('status') != ' ':
+                employee.status = profile_data.get('status')
+            employee.save()
+
+        return Response("Success")
+
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
