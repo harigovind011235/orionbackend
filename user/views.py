@@ -181,6 +181,34 @@ def updateEmployeeLeave(request,id):
 
     return Response("Success")
 
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def setLeaveTable(request,id):
+    if request.method == 'PUT':
+        employee = Employee.objects.get(pk=id)
+        remaining_leaves = RemainingLeave.objects.get(employee=employee)
+
+        try:
+            leave_table_data = json.loads(request.body)
+        except:
+            leave_table_data = None
+        leavetype = leave_table_data.get('leave_type')
+
+        if leavetype == 1:
+            remaining_leaves.casual_leave = leave_table_data.get('no_of_leaves')
+        elif leavetype == 2:
+            remaining_leaves.sick_leave = leave_table_data.get('no_of_leaves')
+        elif leavetype == 3:
+            remaining_leaves.emergency_leave = leave_table_data.get('no_of_leaves')
+        elif leavetype == 4:
+            remaining_leaves.comp_off = leave_table_data.get('no_of_leaves')
+        elif leavetype == 5:
+            remaining_leaves.optional_holidays = leave_table_data.get('no_of_leaves')
+        elif leavetype == 6:
+            remaining_leaves.casual_leave = leave_table_data.get('no_of_leaves')
+        remaining_leaves.save()
+
+        return Response("Success")
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
