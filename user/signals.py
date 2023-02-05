@@ -3,6 +3,9 @@ from django.contrib.auth.models import User
 from .models import Employee,RemainingLeave,Leave
 from django.db.models.signals import post_save,post_delete,pre_save
 from django.dispatch import receiver
+from django.core.mail import send_mail
+from django.conf import settings
+from datetime import datetime
 
 
 @receiver(post_save,sender=User)
@@ -44,5 +47,41 @@ def getPreviousLeaveStatus(sender,instance,**kwargs):
             remainingleaves.optional_holidays -= int(noofleaves)
         elif leavetype == '6':
             remainingleaves.casual_leave = remainingleaves.casual_leave - 0.5
+        leave_type = Leave.LEAVE_CHOICES[int(instance.leave_type) - 1][1]
+        datetime_str = str(instance.created)
+        datetime_object = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S.%f%z")
+        created_date = datetime_object.date()
+        subject = 'Leave Approved'
+        message = ' Name:- {} \n Leave Type:- {}\n Date of Leave:- {} \n Leave Reason:- {}\n No of Leaves:- {}\n Applied on:- {}'.format(employee.name.capitalize(), leave_type.capitalize(),instance.date_of_leave,instance.leave_notes, instance.no_of_leaves_required, created_date)
 
+        send_mail(
+            subject,
+            message,
+            settings.EMAIL_HOST_USER,
+            [employee.email],
+            fail_silently=False
+        )
         remainingleaves.save()
+
+@receiver(post_save,sender=Leave)
+def AppliedLeaveMail(sender,instance,created,**kwargs):
+    if created:
+        leave_instance = instance
+        employee = instance.employee
+        # Get the name from choice field
+        leave_type = Leave.LEAVE_CHOICES[int(leave_instance.leave_type) - 1][1]
+        # Convert the date time to date
+        datetime_str = str(instance.created)
+        datetime_object = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S.%f%z")
+        created_date = datetime_object.date()
+
+        subject = 'Leave Applied by {}'.format(employee.name)
+        message = ' Name:- {} \n Leave Type:- {}\n Date of Leave:- {} \n Leave Reason:- {}\n No of Leaves:- {}\n Applied on:- {}'.format(employee.name.capitalize(), leave_type.capitalize(),instance.date_of_leave,instance.leave_notes, instance.no_of_leaves_required, created_date,)
+
+        send_mail(
+            subject,
+            message,
+            employee.email,
+            [settings.EMAIL_HOST_USER],
+            fail_silently=False
+        )
