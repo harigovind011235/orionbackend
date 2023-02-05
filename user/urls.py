@@ -10,7 +10,6 @@ urlpatterns = [
     path('<str:id>/update-leave',views.updateEmployeeLeave,name="updateleave"),
     path('all',views.getAllUsers,name="allusers"),
     path('<str:id>',views.getProfile,name="profile"),
-    path('<str:id>/updateprofile',views.setUpdateProfile,name="updateprofile"),
     path('<str:id>/leavestatus',views.getLeaves,name="leaves"),
     path('<str:id>/deleteleave',views.leavesDelete,name="deleteleaves"),
     path('<str:id>/remainingleaves',views.getRemainingLeaves,name="remainingleaves"),
