@@ -267,35 +267,3 @@ def getDailyHours(request,id):
     result_page = paginator.paginate_queryset(employee_dailyhours, request)
     serializer = DailyHourSerializer(result_page, many=True)
     return paginator.get_paginated_response(serializer.data)
-
-
-@api_view(['PUT'])
-@permission_classes([IsAuthenticated])
-def setLeaveTable(request,id):
-    if request.method == 'PUT':
-        employee = Employee.objects.get(pk=id)
-        remaining_leaves = RemainingLeave.objects.get(employee=employee)
-
-        try:
-            leave_table_data = json.loads(request.body)
-        except:
-            leave_table_data = None
-
-        for data in leave_table_data:
-            leavetype = data.get('leave_type')
-            if leavetype == 1:
-                remaining_leaves.casual_leave = data.get('no_of_leaves')
-            elif leavetype == 2:
-                remaining_leaves.sick_leave = data.get('no_of_leaves')
-            elif leavetype == 3:
-                remaining_leaves.emergency_leave = data.get('no_of_leaves')
-            elif leavetype == 4:
-                remaining_leaves.comp_off = data.get('no_of_leaves')
-            elif leavetype == 5:
-                remaining_leaves.optional_holidays = data.get('no_of_leaves')
-            elif leavetype == 6:
-                remaining_leaves.casual_leave = data.get('no_of_leaves')
-            remaining_leaves.save()
-
-        return Response("Success")
-
