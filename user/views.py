@@ -103,6 +103,25 @@ def getProfile(request,id):
     serializer = EmployeeSerializer(profile,many=False)
     return Response(serializer.data)
 
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def setUpdateProfile(request, id):
+    # if request.method == 'PUT':
+    employee = Employee.objects.get(pk=id)
+
+    try:
+        profile_data = json.loads(request.body)
+    except:
+        profile_data = None
+    if request.FILES:
+        employee.profile_image = request.FILES.get('profile_image')
+        employee.save()
+    if profile_data:
+        for key,value in profile_data.items():
+            setattr(employee,key,value)
+            employee.save()
+    return Response("Success")
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def setChangePassword(request,id):
