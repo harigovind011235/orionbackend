@@ -175,6 +175,36 @@ def getLeaves(request,id):
     serializer = LeaveSerializer(employee_leaves,many=True)
     return Response(serializer.data)
 
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def setLeaveTable(request,id):
+    # if request.method == 'PUT':
+    employee = Employee.objects.get(pk=id)
+    remaining_leaves = RemainingLeave.objects.get(employee=employee)
+    # except output in this format
+    # [{"no_of_leaves": 1, "leave_type": 4}, {"no_of_leaves": 1, "leave_type": 3},{"no_of_leaves": 1, "leave_type": 2},
+    # {"no_of_leaves": 1, "leave_type": 1},{"no_of_leaves": 1, "leave_type": 5}]
+    try:
+        leave_table_data = json.loads(request.body)
+    except:
+        leave_table_data = None
+    for data in leave_table_data:
+        leavetype = data.get('leave_type')
+        if leavetype == 1:
+            remaining_leaves.casual_leave = data.get('no_of_leaves')
+        elif leavetype == 2:
+            remaining_leaves.sick_leave = data.get('no_of_leaves')
+        elif leavetype == 3:
+            remaining_leaves.emergency_leave = data.get('no_of_leaves')
+        elif leavetype == 4:
+            remaining_leaves.comp_off = data.get('no_of_leaves')
+        elif leavetype == 5:
+            remaining_leaves.optional_holidays = data.get('no_of_leaves')
+        elif leavetype == 6:
+            remaining_leaves.casual_leave = data.get('no_of_leaves')
+        remaining_leaves.save()
+
+    return Response("Success")
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

@@ -13,6 +13,7 @@ urlpatterns = [
     path('<str:id>/updateprofile',views.setUpdateProfile,name="updateprofile"),
     path('<str:id>/leavestatus',views.getLeaves,name="leaves"),
     path('<str:id>/deleteleave',views.leavesDelete,name="deleteleaves"),
+    path('<str:id>/leavetable', views.setLeaveTable, name="leavetable"),
     path('<str:id>/remainingleaves',views.getRemainingLeaves,name="remainingleaves"),
     path('<str:id>/dailyhours',views.getDailyHours,name="dailyhours"),
     path('login/', views.MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
