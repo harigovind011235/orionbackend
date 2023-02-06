@@ -5,3 +5,4 @@ dailyreads/__pycache__/
 user/migrations/
 dailyreads/migrations/
 *.sqlite3
+base/migrations/__pycache__/
