@@ -63,14 +63,13 @@ def AppliedLeaveMail(sender,instance,created,**kwargs):
         created_date = datetime_object.date()
 
         subject = 'Leave Applied by {}'.format(employee.name)
-        message = ' Name:- {} \n Leave Type:- {}\n Date of Leave:- {} \n Leave Reason:- {}\n No of Leaves:- {}\n Applied on:- {}'.format(employee.name.capitalize(), leave_type.capitalize(),instance.date_of_leave,instance.leave_notes, instance.no_of_leaves_required, created_date,)
+        message = ' {} applied for a leave:- \n \n Leave Type:- {}\n Date of Leave:- {} \n Leave Reason:- {}\n No of Leaves:- {}\n Applied on:- {}'.format(employee.name.capitalize(), leave_type.capitalize(),instance.date_of_leave,instance.leave_notes, instance.no_of_leaves_required, created_date,)
 
         send_mail(
             subject,
             message,
-            # employee.email,
             settings.EMAIL_HOST_USER,
-            ['saranya@labglo.com'],
+            ['karthikaa@labglo.com','aparna@labglo.com'],
             fail_silently=False
         )
     else:
