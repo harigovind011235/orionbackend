@@ -29,7 +29,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'django_admin_listfilter_dropdown',
-    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -157,20 +156,6 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'hrmorion@labglo.com'
 EMAIL_HOST_PASSWORD = 'Hrm23Orion*$B'
-
-
-CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672/orionbackend'
-CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
-CELERY_BEAT_SCHEDULE = {
-    'printmsg': {
-        'task': 'user.tasks.printmsg',
-        'schedule': 3.0,
-    },
-    'sendabesenteemail': {
-        'task': 'user.tasks.getAbsentees',
-        'schedule': 10.0,
-    },
-}
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
