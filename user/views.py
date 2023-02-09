@@ -175,6 +175,7 @@ def getLeaves(request,id):
     serializer = LeaveSerializer(employee_leaves,many=True)
     return Response(serializer.data)
 
+# update leave table
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def setLeaveTable(request,id):
@@ -200,8 +201,7 @@ def setLeaveTable(request,id):
             remaining_leaves.comp_off = data.get('no_of_leaves')
         elif leavetype == 5:
             remaining_leaves.optional_holidays = data.get('no_of_leaves')
-        elif leavetype == 6:
-            remaining_leaves.casual_leave = data.get('no_of_leaves')
+
         remaining_leaves.save()
 
     return Response("Success")
