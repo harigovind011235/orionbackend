@@ -42,8 +42,7 @@ class Leave(models.Model):
         ("2", "sick leave"),
         ("3", "emergency leave"),
         ("4", "Comp OFF"),
-        ("5", "optional holiday"),
-        ("6","half day")
+        ("5", "optional holiday")
     )
     employee = models.ForeignKey(Employee,on_delete=models.CASCADE,null=True,blank=True)
     leave_type = models.CharField(max_length=20,choices=LEAVE_CHOICES,default='1')
@@ -51,6 +50,7 @@ class Leave(models.Model):
     no_of_leaves_required = models.IntegerField(default=1,validators=[MaxValueValidator(3),MinValueValidator(1)])
     leave_notes = models.TextField(null=True,blank=True)
     status = models.BooleanField(default=False,null=True,blank=True)
+    half_day = models.BooleanField(default=False,null=True,blank=True)
     created = models.DateTimeField(auto_now_add=True)
     id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
 
@@ -61,7 +61,7 @@ class Leave(models.Model):
 class RemainingLeave(models.Model):
     employee = models.OneToOneField(Employee,on_delete=models.CASCADE,null=True,blank=True)
     casual_leave = models.FloatField(default=12)
-    sick_leave = models.IntegerField(default=7)
+    sick_leave = models.FloatField(default=7)
     emergency_leave = models.IntegerField(default=1)
     comp_off = models.IntegerField(default=0)
     optional_holidays = models.IntegerField(default=2)

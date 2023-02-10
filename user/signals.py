@@ -23,7 +23,7 @@ def createProfile(sender,instance,created,**kwargs):
 #     user = instance.user
 #     user.delete()
 
-
+# update leave when approve leave
 @receiver(pre_save,sender=Leave)
 def getPreviousLeaveStatus(sender,instance,**kwargs):
 
@@ -36,17 +36,22 @@ def getPreviousLeaveStatus(sender,instance,**kwargs):
         noofleaves = leave_table.no_of_leaves_required
         remainingleaves = employee.remainingleave
         if leavetype == '1':
-            remainingleaves.casual_leave -= int(noofleaves)
+            if instance.half_day:
+                remainingleaves.casual_leave -= float(0.5)
+            else:
+                remainingleaves.casual_leave -= float(noofleaves)
         elif leavetype == '2':
-            remainingleaves.sick_leave -= int(noofleaves)
+            if instance.half_day:
+                remainingleaves.sick_leave -= float(0.5)
+            else:
+                remainingleaves.sick_leave -= float(noofleaves)
         elif leavetype == '3':
             remainingleaves.emergency_leave -= int(noofleaves)
         elif leavetype == '4':
             remainingleaves.comp_off -= int(noofleaves)
         elif leavetype == '5':
             remainingleaves.optional_holidays -= int(noofleaves)
-        elif leavetype == '6':
-            remainingleaves.casual_leave = remainingleaves.casual_leave - 0.5
+
 
         remainingleaves.save()
 

@@ -75,6 +75,7 @@ def getLeavesForApproval(request,id):
         data['no_of_leaves'] = leave.no_of_leaves_required
         data['leave_type'] = leave.leave_type
         data['leave_id'] = leave.id
+        data['half_day'] = leave.half_day
         pending_leaves.append(data)
 
     return Response(pending_leaves)
@@ -167,6 +168,7 @@ def getLeaves(request,id):
         leave_table.leave_notes = apply_leave_data.get('leaveNotes')
         leave_table.date_of_leave = apply_leave_data.get('leaveDate')
         leave_table.no_of_leaves_required = apply_leave_data.get('noOfLeaves')
+        leave_table.half_day = apply_leave_data.get('half_day')
         leave_table.save()
 
         return Response("Success")
@@ -175,6 +177,7 @@ def getLeaves(request,id):
     serializer = LeaveSerializer(employee_leaves,many=True)
     return Response(serializer.data)
 
+# update leave table
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def setLeaveTable(request,id):
@@ -200,8 +203,7 @@ def setLeaveTable(request,id):
             remaining_leaves.comp_off = data.get('no_of_leaves')
         elif leavetype == 5:
             remaining_leaves.optional_holidays = data.get('no_of_leaves')
-        elif leavetype == 6:
-            remaining_leaves.casual_leave = data.get('no_of_leaves')
+
         remaining_leaves.save()
 
     return Response("Success")
