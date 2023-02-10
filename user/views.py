@@ -75,6 +75,7 @@ def getLeavesForApproval(request,id):
         data['no_of_leaves'] = leave.no_of_leaves_required
         data['leave_type'] = leave.leave_type
         data['leave_id'] = leave.id
+        data['half_day'] = leave.half_day
         pending_leaves.append(data)
 
     return Response(pending_leaves)
@@ -167,6 +168,7 @@ def getLeaves(request,id):
         leave_table.leave_notes = apply_leave_data.get('leaveNotes')
         leave_table.date_of_leave = apply_leave_data.get('leaveDate')
         leave_table.no_of_leaves_required = apply_leave_data.get('noOfLeaves')
+        leave_table.half_day = apply_leave_data.get('half_day')
         leave_table.save()
 
         return Response("Success")
