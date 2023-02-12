@@ -6,6 +6,7 @@ from . import views
 urlpatterns = [
     path('routes',views.getUserRoutes,name="user-routes"),
     path('all-leave-requests',views.getAllPendingLeaves,name="allpendingleaves"),
+    path('all-leaves', views.getAllLeaves, name='all_leaves'),
     path('<str:id>/employee-pending-leaves',views.getLeavesForApproval,name="remainingleaveapprovals"),
     path('<str:id>/update-leave',views.updateEmployeeLeave,name="updateleave"),
     path('all',views.getAllUsers,name="allusers"),
