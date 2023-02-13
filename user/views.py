@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from .models import Employee,DailyHour,Leave,RemainingLeave
-from .serializers import EmployeeSerializer,LeaveSerializer,DailyHourSerializer,RemainingLeavesSerializer, PendingLeaveSerializer
+from .serializers import EmployeeSerializer,LeaveSerializer,DailyHourSerializer,RemainingLeavesSerializer, PendingLeaveSerializer, AllLeaveSerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
@@ -96,7 +96,28 @@ def getAllUsers(request):
     serializer = EmployeeSerializer(result_page, many=True)
     return paginator.get_paginated_response(serializer.data)
 
+@api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+def getAllLeaves(request):
 
+    class AllLeavesPagination(PageNumberPagination):
+        page_size = 20
+        page_size_query_param = 'page_size'
+        max_page_size = 1000
+        page_query_param = 'page'
+
+    paginator = AllLeavesPagination()
+    pending_leaves = Leave.objects.filter(status=False).values('employee_id','employee__name','leave_type',
+                    'date_of_leave', 'half_day','leave_notes','leave_type','no_of_leaves_required','status',
+                    'employee__designation','employee__profile_image' ).annotate(count=Count('employee_id'))
+    result_page = paginator.paginate_queryset(pending_leaves, request)
+    serializer = AllLeaveSerializer(result_page,many=True)
+    total_pending_leaves = 0
+    for item in pending_leaves:
+        total_pending_leaves += item['count']
+    context = {'data':serializer.data, 'total_pending_leaves':total_pending_leaves}
+    print(serializer.data)
+    return Response(context)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getProfile(request,id):
@@ -150,7 +171,7 @@ def setChangePassword(request,id):
             else:
                 return Response("Password doesn't match")
 
-
+# To store the applied leave by user
 @api_view(['GET','POST'])
 @permission_classes([IsAuthenticated])
 def getLeaves(request,id):
@@ -177,7 +198,7 @@ def getLeaves(request,id):
     serializer = LeaveSerializer(employee_leaves,many=True)
     return Response(serializer.data)
 
-# update leave table
+# edit leave table by admin
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def setLeaveTable(request,id):
@@ -208,6 +229,8 @@ def setLeaveTable(request,id):
 
     return Response("Success")
 
+
+#get remaining leaves of each employee
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getRemainingLeaves(request,id):

@@ -24,7 +24,7 @@ class Employee(models.Model):
     contact_no = models.CharField(max_length=10, null=True, blank=True, validators=[numeric])
     alternate_contact = models.CharField(max_length=10, null=True,blank=True, validators=[numeric])
     blood_group = models.CharField(max_length=20,null=True,blank=True)
-    designation = models.CharField(max_length=20,null=True,blank=True)
+    designation = models.CharField(max_length=200, null=True, blank=True)
     date_of_joining = models.DateField(null=True,blank=True)
     dob = models.DateField(null=True,blank=True)
     status = models.BooleanField(default=True,null=True,blank=True)
