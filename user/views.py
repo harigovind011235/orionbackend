@@ -108,8 +108,7 @@ def getAllLeaves(request):
 
     paginator = AllLeavesPagination()
     pending_leaves = Leave.objects.filter(status=False).values('employee_id','employee__name','leave_type',
-                    'date_of_leave', 'half_day','leave_notes','leave_type','no_of_leaves_required','status',
-                    'employee__designation','employee__profile_image' ).annotate(count=Count('employee_id'))
+                    'date_of_leave', 'half_day','leave_notes','leave_type','no_of_leaves_required','status').annotate(count=Count('employee_id'))
     result_page = paginator.paginate_queryset(pending_leaves, request)
     serializer = AllLeaveSerializer(result_page,many=True)
     total_pending_leaves = 0
