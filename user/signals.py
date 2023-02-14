@@ -68,7 +68,7 @@ def AppliedLeaveMail(sender,instance,created,**kwargs):
         created_date = datetime_object.date()
 
         subject = 'Leave Applied by {}'.format(employee.name)
-        message = ' {} applied for a leave:- \n \n Leave Type:- {}\n Date of Leave:- {} \n Leave Reason:- {}\n No of Leaves:- {}\n Applied on:- {}'.format(employee.name.capitalize(), leave_type.capitalize(),instance.date_of_leave,instance.leave_notes, instance.no_of_leaves_required, created_date,)
+        message = ' {} applied for a leave \n \n Leave Type:- {}\n From:- {} \n To:- {}\n Leave Reason:- {}\n No of Leaves:- {}\n Applied on:- {}'.format(employee.name.capitalize(), leave_type.capitalize(),instance.date_of_leave, instance.end_date_of_leave,instance.leave_notes, instance.no_of_leaves_required, created_date,)
 
         send_mail(
             subject,
@@ -84,7 +84,7 @@ def AppliedLeaveMail(sender,instance,created,**kwargs):
         datetime_object = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S.%f%z")
         created_date = datetime_object.date()
         subject = 'Leave Approved'
-        message = ' Name:- {} \n Leave Type:- {}\n Date of Leave:- {} \n Leave Reason:- {}\n No of Leaves:- {}\n Applied on:- {}'.format(employee.name.capitalize(), leave_type.capitalize(),instance.date_of_leave,instance.leave_notes, instance.no_of_leaves_required, created_date,)
+        message = ' Name:- {} \n Leave Type:- {}\n From:- {} \n To:- {} \n Leave Reason:- {}\n No of Leaves:- {}\n Applied on:- {}'.format(employee.name.capitalize(), leave_type.capitalize(),instance.date_of_leave,instance.end_date_of_leave, instance.leave_notes, instance.no_of_leaves_required, created_date,)
 
         send_mail(
             subject,
