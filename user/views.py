@@ -71,6 +71,7 @@ def getLeavesForApproval(request,id):
     for leave in employee_pending_leaves:
         data = {}
         data['leave_applied'] = leave.date_of_leave
+        data['end_date_of_leave'] = leave.end_date_of_leave
         data['leave_notes'] = leave.leave_notes
         data['no_of_leaves'] = leave.no_of_leaves_required
         data['leave_type'] = leave.leave_type
@@ -108,7 +109,7 @@ def getAllLeaves(request):
 
     paginator = AllLeavesPagination()
     pending_leaves = Leave.objects.filter(status=False).values('employee_id','employee__name','leave_type',
-                    'date_of_leave', 'half_day','leave_notes','leave_type','no_of_leaves_required','status').annotate(count=Count('employee_id'))
+                    'date_of_leave', 'end_date_of_leave', 'half_day','leave_notes','leave_type','no_of_leaves_required','status','id').annotate(count=Count('employee_id'))
     result_page = paginator.paginate_queryset(pending_leaves, request)
     serializer = AllLeaveSerializer(result_page,many=True)
     total_pending_leaves = 0
@@ -187,6 +188,7 @@ def getLeaves(request,id):
         leave_table.leave_type = apply_leave_data.get('leaveType')
         leave_table.leave_notes = apply_leave_data.get('leaveNotes')
         leave_table.date_of_leave = apply_leave_data.get('leaveDate')
+        leave_table.end_date_of_leave = apply_leave_data.get('EndleaveDate')
         leave_table.no_of_leaves_required = apply_leave_data.get('noOfLeaves')
         leave_table.half_day = apply_leave_data.get('half_day')
         leave_table.save()
