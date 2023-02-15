@@ -9,6 +9,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import update_session_auth_hash
 from django.db.models import Count
+from django.db.models import Q
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.utils import timezone
@@ -117,6 +118,52 @@ def getAllLeaves(request):
     context = {'data':serializer.data, 'total_pending_leaves':total_pending_leaves}
     print(serializer.data)
     return Response(context)
+
+
+
+
+@api_view(['GET'])
+def getSearchApi(request):
+    status =request.GET.get('status')
+    rejected = request.GET.get('rejected')
+    name = request.GET.get('name')
+    leave_type = request.GET.get('leave_type')
+    if name:
+
+        filter_condition = (
+                Q(status=status) |
+                Q(leave_type=leave_type) |
+                Q(employee__name__icontains=name) |
+                Q(rejected=rejected)
+        )
+    else:
+        filter_condition = (
+                Q(status=status) |
+                Q(leave_type=leave_type) |
+                Q(rejected=rejected)
+        )
+
+
+    leaves = Leave.objects.filter(
+        filter_condition
+        )
+    leaves_filter = []
+    for leave in leaves:
+        data = {}
+        data['name'] = leave.employee
+        data['leave_applied'] = leave.date_of_leave
+        data['end_date_of_leave'] = leave.end_date_of_leave
+        data['leave_notes'] = leave.leave_notes
+        data['no_of_leaves'] = leave.no_of_leaves_required
+        data['leave_type'] = leave.leave_type
+        data['leave_id'] = leave.id
+        data['half_day'] = leave.half_day
+        data['rejected'] = leave.rejected
+        leaves_filter.append(data)
+    return Response(leaves_filter)
+
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getProfile(request,id):
@@ -319,3 +366,6 @@ def getDailyHours(request,id):
     result_page = paginator.paginate_queryset(employee_dailyhours, request)
     serializer = DailyHourSerializer(result_page, many=True)
     return paginator.get_paginated_response(serializer.data)
+
+
+
