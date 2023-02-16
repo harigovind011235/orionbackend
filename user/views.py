@@ -8,12 +8,13 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import update_session_auth_hash
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.utils import timezone
 from datetime import datetime
 import json
+
 
 
 # Create your views here.
@@ -109,8 +110,8 @@ def getAllLeaves(request):
         page_query_param = 'page'
 
     paginator = AllLeavesPagination()
-    pending_leaves = Leave.objects.filter(status=False).values('employee_id','employee__name','leave_type',
-                    'date_of_leave', 'end_date_of_leave', 'half_day','leave_notes','leave_type','no_of_leaves_required','status','id').annotate(count=Count('employee_id'))
+    pending_leaves = Leave.objects.filter(status=False, rejected=False).values('employee_id','employee__name','leave_type',
+                    'date_of_leave', 'end_date_of_leave', 'half_day','rejected','leave_notes','leave_type','no_of_leaves_required','status','id').annotate(count=Count('employee_id'))
     result_page = paginator.paginate_queryset(pending_leaves, request)
     serializer = AllLeaveSerializer(result_page,many=True)
     total_pending_leaves = 0
@@ -127,6 +128,45 @@ def getAllHolidays(request):
     return Response(serializer.data)
 
 
+@api_view(['GET'])
+def getSearchApi(request):
+    status =request.GET.get('status')
+    rejected = request.GET.get('rejected')
+    name = request.GET.get('name')
+    leave_type = request.GET.get('leave_type')
+    if name:
+
+        filter_condition = (
+                Q(status=status) |
+                Q(leave_type=leave_type) |
+                Q(employee__name__icontains=name) |
+                Q(rejected=rejected)
+        )
+    else:
+        filter_condition = (
+                Q(status=status) |
+                Q(leave_type=leave_type) |
+                Q(rejected=rejected)
+        )
+
+
+    leaves = Leave.objects.filter(
+        filter_condition
+        )
+    leaves_filter = []
+    for leave in leaves:
+        data = {}
+        data['name'] = leave.employee
+        data['leave_applied'] = leave.date_of_leave
+        data['end_date_of_leave'] = leave.end_date_of_leave
+        data['leave_notes'] = leave.leave_notes
+        data['no_of_leaves'] = leave.no_of_leaves_required
+        data['leave_type'] = leave.leave_type
+        data['leave_id'] = leave.id
+        data['half_day'] = leave.half_day
+        data['rejected'] = leave.rejected
+        leaves_filter.append(data)
+    return Response(leaves_filter)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -257,13 +297,18 @@ def getRemainingLeaves(request,id):
 @api_view(['PUT'])
 def updateEmployeeLeave(request,id):
     employee_leave = Leave.objects.get(pk=id)
+    status = request.data.get('leavestatus', None)
     try:
-        employee_leave.status = True
-        employee_leave.save()
-    except:
-        employee_leave.status = False
-        return Response("Failed")
+        if status == 'Pending':
+            pass
+        if status == 'Approved':
+            employee_leave.status = True
+        if status == 'Rejected':
+            employee_leave.rejected = True
 
+        employee_leave.save()
+    except Exception as e:
+        return Response("Failed Approving Leave -> {}".format(e))
     return Response("Success")
 
 
