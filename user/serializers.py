@@ -1,6 +1,6 @@
 
 from rest_framework import serializers
-from .models import Employee,Leave,DailyHour,RemainingLeave
+from .models import Employee,Leave,DailyHour,RemainingLeave, Holiday
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
@@ -19,6 +19,11 @@ class LeaveSerializer(serializers.ModelSerializer):
 class DailyHourSerializer(serializers.ModelSerializer):
     class Meta:
         model = DailyHour
+        fields = '__all__'
+
+class HolidaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Holiday
         fields = '__all__'
 
 class RemainingLeavesSerializer(serializers.ModelSerializer):
