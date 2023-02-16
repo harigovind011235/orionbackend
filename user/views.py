@@ -2,8 +2,8 @@
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
-from .models import Employee,DailyHour,Leave,RemainingLeave
-from .serializers import EmployeeSerializer,LeaveSerializer,DailyHourSerializer,RemainingLeavesSerializer, PendingLeaveSerializer, AllLeaveSerializer
+from .models import Employee,DailyHour,Leave,RemainingLeave, Holiday
+from .serializers import EmployeeSerializer,LeaveSerializer,DailyHourSerializer,RemainingLeavesSerializer, PendingLeaveSerializer, AllLeaveSerializer, HolidaySerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
@@ -35,6 +35,7 @@ def getUserRoutes(request):
     routes = [
         {'GET':'api/user/all'},
         {'GET':'api/user/id'},
+        {'GET':'api/user/holidays'},
         {'POST': 'api/user/id'},
         {'GET':'api/user/id/leavestatus'},
         {'POST': 'api/user/id/leavestatus'},
@@ -116,8 +117,17 @@ def getAllLeaves(request):
     for item in pending_leaves:
         total_pending_leaves += item['count']
     context = {'data':serializer.data, 'total_pending_leaves':total_pending_leaves}
-    print(serializer.data)
     return Response(context)
+#To show the holiday
+@api_view(['GET'])
+def getAllHolidays(request):
+
+    holiday_table = Holiday.objects.all().order_by('date_of_holiday')
+    serializer = HolidaySerializer(holiday_table,many=True)
+    return Response(serializer.data)
+
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getProfile(request,id):
