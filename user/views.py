@@ -134,20 +134,89 @@ def getSearchApi(request):
     rejected = request.GET.get('rejected')
     name = request.GET.get('name')
     leave_type = request.GET.get('leave_type')
-    if name:
+    filter_condition = Q()
+    if name and status and rejected and leave_type:
 
         filter_condition = (
-                Q(status=status) |
-                Q(leave_type=leave_type) |
-                Q(employee__name__icontains=name) |
+                Q(status=status) &
+                Q(leave_type=leave_type) &
+                Q(employee__name__icontains=name) &
                 Q(rejected=rejected)
         )
-    else:
+    elif name and status and rejected:
         filter_condition = (
-                Q(status=status) |
-                Q(leave_type=leave_type) |
+            Q(status=status) &
+            Q(employee__name__icontains=name) &
+            Q(rejected=rejected)
+        )
+    elif name and status and leave_type:
+        filter_condition = (
+            Q(status=status) &
+            Q(employee__name__icontains=name) &
+            Q(leave_type=leave_type)
+        )
+    elif name  and leave_type and rejected:
+        filter_condition =(
+                Q(leave_type=leave_type) &
+                Q(employee__name__icontains=name) &
                 Q(rejected=rejected)
         )
+
+    elif status and leave_type and rejected:
+        filter_condition = (
+            Q(status=status) &
+            Q(leave_type=leave_type) &
+            Q(rejected=rejected)
+        )
+    elif status and rejected:
+        filter_condition = (
+            Q(status=status) &
+            Q(rejected=rejected)
+        )
+    elif leave_type and status:
+        filter_condition = (
+                Q(status=status) &
+                Q(leave_type=leave_type)
+        )
+    elif leave_type and rejected:
+        filter_condition = (
+                Q(leave_type=leave_type) &
+                Q(rejected=rejected)
+        )
+    elif leave_type and name:
+        filter_condition = (
+                Q(leave_type=leave_type) &
+                Q(employee__name__icontains=name)
+        )
+    elif rejected and name:
+        filter_condition = (
+        Q(employee__name__icontains=name) &
+        Q(rejected=rejected)
+        )
+    elif status and name:
+        filter_condition = (
+                Q(status=status) &
+                Q(employee__name__icontains=name)
+        )
+    elif name:
+        filter_condition = (
+                Q(employee__name__icontains=name)
+        )
+    elif status:
+        filter_condition = (
+                Q(status=status)
+        )
+    elif rejected:
+        filter_condition = (
+                Q(rejected=rejected)
+        )
+    elif leave_type:
+        filter_condition = (
+                Q(leave_type=leave_type)
+        )
+
+    pending_leaves = Leave.objects.filter(status=False, rejected=False).annotate(count=Count('employee_id'))
+    total_pending_leaves = len(pending_leaves)
 
 
     leaves = Leave.objects.filter(
@@ -168,6 +237,7 @@ def getSearchApi(request):
         data['half_day'] = leave.half_day
         data['rejected'] = leave.rejected
         data['status'] = leave.status
+        data['total_pending_leaves'] = total_pending_leaves
         leaves_filter.append(data)
     return Response(leaves_filter)
 
