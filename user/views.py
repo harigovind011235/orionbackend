@@ -154,9 +154,11 @@ def getSearchApi(request):
         filter_condition
         )
     leaves_filter = []
+
     for leave in leaves:
         data = {}
-        data['name'] = leave.employee
+        data['name'] = leave.employee.name
+        data['employee_id'] = leave.employee.id
         data['leave_applied'] = leave.date_of_leave
         data['end_date_of_leave'] = leave.end_date_of_leave
         data['leave_notes'] = leave.leave_notes
@@ -165,6 +167,7 @@ def getSearchApi(request):
         data['leave_id'] = leave.id
         data['half_day'] = leave.half_day
         data['rejected'] = leave.rejected
+        data['status'] = leave.status
         leaves_filter.append(data)
     return Response(leaves_filter)
 
