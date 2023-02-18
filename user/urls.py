@@ -8,6 +8,7 @@ urlpatterns = [
     path('all-leave-requests',views.getAllPendingLeaves,name="allpendingleaves"),
     path('all-leaves', views.getAllLeaves, name='all_leaves'),
     path('holidays', views.getAllHolidays, name='holidays'),
+    path('searchapi', views.getSearchApi, name="searchapi"),
     path('<str:id>/employee-pending-leaves',views.getLeavesForApproval,name="remainingleaveapprovals"),
     path('<str:id>/update-leave',views.updateEmployeeLeave,name="updateleave"),
     path('all',views.getAllUsers,name="allusers"),

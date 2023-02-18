@@ -51,7 +51,7 @@ class Leave(models.Model):
     no_of_leaves_required = models.IntegerField(default=1,validators=[MaxValueValidator(3),MinValueValidator(1)])
     leave_notes = models.TextField(null=True,blank=True)
     status = models.BooleanField(default=False,null=True,blank=True)
-    rejected = models.BooleanField(default=False,null=True,blank=True)
+    rejected = models.BooleanField(default=False,blank=True)
     half_day = models.BooleanField(default=False,null=True,blank=True)
     created = models.DateTimeField(auto_now_add=True)
     id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
