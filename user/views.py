@@ -237,9 +237,9 @@ def getSearchApi(request):
         data['half_day'] = leave.half_day
         data['rejected'] = leave.rejected
         data['status'] = leave.status
-        data['total_pending_leaves'] = total_pending_leaves
         leaves_filter.append(data)
-    return Response(leaves_filter)
+    context = {'data':leaves_filter, 'total_pending_leaves':total_pending_leaves}
+    return Response(context)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
