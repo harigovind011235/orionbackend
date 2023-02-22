@@ -29,6 +29,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'django_admin_listfilter_dropdown',
+    'debug_toolbar',
+    'import_export',
 ]
 
 MIDDLEWARE = [
@@ -40,6 +42,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware'
 ]
 
 REST_FRAMEWORK = {
@@ -109,13 +112,20 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'orionlive',
-        'USER': 'postgres',
-        'PASSWORD': 'harry007',
+        'NAME': 'oriondatabase',
+        'USER': 'saranyaorion',
+        'PASSWORD': 'saranyaorion',
         'HOST': '127.0.0.1',
-        'PORT': '5432',
+        'PORT': '5433',
     }
 }
+
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
+#         'LOCATION': '127.0.0.1:11211',
+#     }
+# }
 
 
 # Password validation
@@ -173,3 +183,9 @@ STATICFILES_DIRS= [
 MEDIA_ROOT = 'assets/images'
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+INTERNAL_IPS = [
+    # ...
+    "127.0.0.1",
+    # ...
+]

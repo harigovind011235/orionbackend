@@ -1,4 +1,4 @@
-
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
@@ -367,22 +367,40 @@ def getRemainingLeaves(request,id):
         return Response({})
 
 
+# @api_view(['PUT'])
+# def updateEmployeeLeave(request,id):
+#     employee_leave = Leave.objects.get(pk=id)
+#     status = request.data.get('leavestatus', None)
+#     try:
+#         if status == 'Pending':
+#             pass
+#         if status == 'Approved':
+#             employee_leave.status = True
+#         if status == 'Rejected':
+#             employee_leave.rejected = True
+#
+#         employee_leave.save()
+#     except Exception as e:
+#         return Response("Failed Approving Leave -> {}".format(e))
+#     return Response("Success")
 @api_view(['PUT'])
 def updateEmployeeLeave(request,id):
-    employee_leave = Leave.objects.get(pk=id)
+    employee_leave = get_object_or_404(Leave, pk=id)
     status = request.data.get('leavestatus', None)
+    attribute_map = {
+        'Pending': {},
+        'Approved': {'status': True},
+        'Rejected': {'rejected': True}
+    }
     try:
-        if status == 'Pending':
-            pass
-        if status == 'Approved':
-            employee_leave.status = True
-        if status == 'Rejected':
-            employee_leave.rejected = True
-
+        updates = attribute_map.get(status, {})
+        for attr, value in updates.items():
+            setattr(employee_leave, attr, value)
         employee_leave.save()
     except Exception as e:
         return Response("Failed Approving Leave -> {}".format(e))
     return Response("Success")
+
 
 
 @api_view(['DELETE'])
