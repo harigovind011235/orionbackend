@@ -1,4 +1,4 @@
-
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
@@ -299,27 +299,24 @@ def setChangePassword(request,id):
 @permission_classes([IsAuthenticated])
 def getLeaves(request,id):
 
-    employee = Employee.objects.get(pk=id)
-    if request.method == 'POST':
-        leave_table = Leave(employee=employee)
-        try:
-            apply_leave_data = json.loads(request.body)
-        except:
-            apply_leave_data = None
+    employee = get_object_or_404(Employee, pk=id)
 
-        leave_table.employee = employee
-        leave_table.leave_type = apply_leave_data.get('leaveType')
-        leave_table.leave_notes = apply_leave_data.get('leaveNotes')
-        leave_table.date_of_leave = apply_leave_data.get('leaveDate')
-        leave_table.end_date_of_leave = apply_leave_data.get('EndleaveDate')
-        leave_table.no_of_leaves_required = apply_leave_data.get('noOfLeaves')
-        leave_table.half_day = apply_leave_data.get('half_day')
-        leave_table.save()
+    if request.method == 'POST':
+        data = request.data
+        leave_table = Leave.objects.create(
+            employee=employee,
+            leave_type=data.get('leaveType'),
+            leave_notes=data.get('leaveNotes'),
+            date_of_leave=data.get('leaveDate'),
+            end_date_of_leave=data.get('EndleaveDate'),
+            no_of_leaves_required=data.get('noOfLeaves'),
+            half_day=data.get('half_day')
+        )
 
         return Response("Success")
 
-    employee_leaves = employee.leave_set.all()
-    serializer = LeaveSerializer(employee_leaves,many=True)
+    employee_leaves = Leave.objects.filter(employee=employee)
+    serializer = LeaveSerializer(employee_leaves, many=True)
     return Response(serializer.data)
 
 # edit leave table by admin
