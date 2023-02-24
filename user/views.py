@@ -9,6 +9,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import update_session_auth_hash
 from django.db.models import Count, Q
+from django.views.decorators.cache import cache_page
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.utils import timezone
@@ -83,7 +84,7 @@ def getLeavesForApproval(request,id):
 
     return Response(pending_leaves)
 
-
+@cache_page(60)
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 def getAllUsers(request):
@@ -127,7 +128,7 @@ def getAllHolidays(request):
     serializer = HolidaySerializer(holiday_table,many=True)
     return Response(serializer.data)
 
-
+# @cache_page(604800)
 @api_view(['GET'])
 def getSearchApi(request):
     status =request.GET.get('status')
@@ -325,6 +326,7 @@ def setChangePassword(request,id):
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
+@cache_page(60)
 def getLeaves(request, id):
     employee = get_object_or_404(Employee, pk=id)
 

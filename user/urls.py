@@ -1,6 +1,7 @@
 
 from django.urls import path
 from . import views
+from django.views.decorators.cache import cache_page
 
 
 urlpatterns = [
@@ -11,10 +12,10 @@ urlpatterns = [
     path('searchapi', views.getSearchApi, name="searchapi"),
     path('<str:id>/employee-pending-leaves',views.getLeavesForApproval,name="remainingleaveapprovals"),
     path('<str:id>/update-leave',views.updateEmployeeLeave,name="updateleave"),
-    path('all',views.getAllUsers,name="allusers"),
+    path('all',cache_page(60)(views.getAllUsers),name="allusers"),
     path('<str:id>',views.getProfile,name="profile"),
     path('<str:id>/updateprofile',views.setUpdateProfile,name="updateprofile"),
-    path('<str:id>/leavestatus',views.getLeaves,name="leaves"),
+    path('<str:id>/leavestatus',cache_page(60)(views.getLeaves),name="leaves"),
     path('<str:id>/deleteleave',views.leavesDelete,name="deleteleaves"),
     path('<str:id>/leavetable', views.setLeaveTable, name="leavetable"),
     path('<str:id>/remainingleaves',views.getRemainingLeaves,name="remainingleaves"),
