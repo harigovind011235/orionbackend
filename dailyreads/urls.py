@@ -5,5 +5,6 @@ from . import views
 urlpatterns = [
     path('routes',views.getDailyReadRoutes,name="dailyread-routes"),
     path('blogs',views.getBlogs,name="blogs"),
-    path('news',views.getNews,name="news")
+    path('news',views.getNews,name="news"),
+    path('quote',views.getQuote,name="quote")
 ]

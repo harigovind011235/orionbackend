@@ -7,3 +7,4 @@ dailyreads/migrations/
 *.sqlite3
 base/migrations/__pycache__/
 assets/images/
+.idea/
