@@ -30,3 +30,10 @@ class News(models.Model):
 
     class Meta:
         verbose_name_plural = 'News'
+
+
+class Quote(models.Model):
+    quote_text = models.CharField(max_length=500)
+    author = models.CharField(max_length=100,null=True,blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+

@@ -1,6 +1,6 @@
 
 from rest_framework import serializers
-from .models import Blogs,News
+from .models import Blogs,News,Quote
 
 
 class BlogSerializer(serializers.ModelSerializer):
@@ -14,3 +14,8 @@ class NewsSerializer(serializers.ModelSerializer):
     class Meta:
         model = News
         fields = '__all__'
+
+class QuoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Quote
+        fields = ('quote_text', 'author')
