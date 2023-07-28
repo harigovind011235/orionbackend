@@ -29,6 +29,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'django_admin_listfilter_dropdown',
+    'dbbackup',
+    'django_apscheduler'
 ]
 
 MIDDLEWARE = [
@@ -173,3 +175,6 @@ STATICFILES_DIRS= [
 MEDIA_ROOT = 'assets/images'
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
+DBBACKUP_STORAGE_OPTIONS = {'location': BASE_DIR/'backup/'}
