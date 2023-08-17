@@ -74,7 +74,7 @@ def AppliedLeaveMail(sender,instance,created,**kwargs):
             subject,
             message,
             settings.EMAIL_HOST_USER,
-            ['karthikaa@labglo.com'],
+            ['hari@labglo.com'],
             fail_silently=False
         )
     else:

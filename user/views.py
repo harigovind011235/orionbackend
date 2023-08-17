@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.views import APIView
 from .models import Employee,DailyHour,Leave,RemainingLeave, Holiday
 from .serializers import EmployeeSerializer,LeaveSerializer,DailyHourSerializer,RemainingLeavesSerializer, PendingLeaveSerializer, AllLeaveSerializer, HolidaySerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -31,22 +32,21 @@ class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
 
-@api_view(['GET'])
-def getUserRoutes(request):
-    routes = [
-        {'GET':'api/user/all'},
-        {'GET':'api/user/id'},
-        {'GET':'api/user/holidays'},
-        {'POST': 'api/user/id'},
-        {'GET':'api/user/id/leavestatus'},
-        {'POST': 'api/user/id/leavestatus'},
-        {'DELETE': 'api/user/id/deleteleave'},
-        {'GET':'api/user/id/dailyhours'},
-        {'POST': 'api/user/id/dailyhours'},
-        {'POST': 'api/user/id/changepassword'},
-    ]
-
-    return Response(routes)
+class GetUserRoutes(APIView):
+    def get(self,request):
+        routes = [
+            {'GET': 'api/user/all'},
+            {'GET': 'api/user/id'},
+            {'GET': 'api/user/holidays'},
+            {'POST': 'api/user/id'},
+            {'GET': 'api/user/id/leavestatus'},
+            {'POST': 'api/user/id/leavestatus'},
+            {'DELETE': 'api/user/id/deleteleave'},
+            {'GET': 'api/user/id/dailyhours'},
+            {'POST': 'api/user/id/dailyhours'},
+            {'POST': 'api/user/id/changepassword'},
+        ]
+        return Response(routes)
 
 @api_view(['GET'])
 def getAllPendingLeaves(request):
@@ -84,20 +84,37 @@ def getLeavesForApproval(request,id):
     return Response(pending_leaves)
 
 
-@api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-def getAllUsers(request):
+# @api_view(['GET'])
+# # @permission_classes([IsAuthenticated])
+# def getAllUsers(request):
+#     class EmployeePagination(PageNumberPagination):
+#         page_size = 20
+#         page_size_query_param = 'page_size'
+#         max_page_size = 1000
+#         page_query_param = 'page'
+#
+#     paginator = EmployeePagination()
+#     all_employees = Employee.objects.all().order_by('date_of_joining')
+#     result_page = paginator.paginate_queryset(all_employees, request)
+#     serializer = EmployeeSerializer(result_page, many=True)
+#     return paginator.get_paginated_response(serializer.data)
+
+
+class ListEmployees(APIView):
+
     class EmployeePagination(PageNumberPagination):
-        page_size = 20
+        page_size = 10
         page_size_query_param = 'page_size'
-        max_page_size = 1000
+        max_page_size = 100
         page_query_param = 'page'
 
-    paginator = EmployeePagination()
-    all_employees = Employee.objects.all().order_by('date_of_joining')
-    result_page = paginator.paginate_queryset(all_employees, request)
-    serializer = EmployeeSerializer(result_page, many=True)
-    return paginator.get_paginated_response(serializer.data)
+    def get(self,request):
+        paginator = self.EmployeePagination()
+        all_employees = Employee.objects.all().order_by('date_of_joining')
+        result_page = paginator.paginate_queryset(all_employees,request)
+        serializer = EmployeeSerializer(result_page,many=True)
+        return paginator.get_paginated_response(serializer.data)
+
 
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
@@ -119,6 +136,8 @@ def getAllLeaves(request):
         total_pending_leaves += item['count']
     context = {'data':serializer.data, 'total_pending_leaves':total_pending_leaves}
     return Response(context)
+
+
 #To show the holiday
 @api_view(['GET'])
 def getAllHolidays(request):
@@ -241,13 +260,6 @@ def getSearchApi(request):
     context = {'data':leaves_filter, 'total_pending_leaves':total_pending_leaves}
     return Response(context)
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def getProfile(request,id):
-    profile = Employee.objects.get(pk=id)
-    serializer = EmployeeSerializer(profile,many=False)
-    return Response(serializer.data)
-
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
@@ -267,6 +279,8 @@ def setUpdateProfile(request, id):
             setattr(employee,key,value)
             employee.save()
     return Response("Success")
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def setChangePassword(request,id):
@@ -294,6 +308,8 @@ def setChangePassword(request,id):
             else:
                 return Response("Password doesn't match")
 
+
+
 # To store the applied leave by user
 @api_view(['GET','POST'])
 @permission_classes([IsAuthenticated])
@@ -318,6 +334,7 @@ def getLeaves(request,id):
     employee_leaves = Leave.objects.filter(employee=employee)
     serializer = LeaveSerializer(employee_leaves, many=True)
     return Response(serializer.data)
+
 
 # edit leave table by admin
 @api_view(['PUT'])
@@ -381,6 +398,7 @@ def updateEmployeeLeave(request,id):
     except Exception as e:
         return Response("Failed Approving Leave -> {}".format(e))
     return Response("Success")
+
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])

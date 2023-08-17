@@ -4,15 +4,14 @@ from . import views
 
 
 urlpatterns = [
-    path('routes',views.getUserRoutes,name="user-routes"),
+    path('routes',views.GetUserRoutes.as_view(),name="user-routes"),
     path('all-leave-requests',views.getAllPendingLeaves,name="allpendingleaves"),
     path('all-leaves', views.getAllLeaves, name='all_leaves'),
     path('holidays', views.getAllHolidays, name='holidays'),
     path('searchapi', views.getSearchApi, name="searchapi"),
     path('<str:id>/employee-pending-leaves',views.getLeavesForApproval,name="remainingleaveapprovals"),
     path('<str:id>/update-leave',views.updateEmployeeLeave,name="updateleave"),
-    path('all',views.getAllUsers,name="allusers"),
-    path('<str:id>',views.getProfile,name="profile"),
+    path('all/',views.ListEmployees.as_view(),name="allemployees"),
     path('<str:id>/updateprofile',views.setUpdateProfile,name="updateprofile"),
     path('<str:id>/leavestatus',views.getLeaves,name="leaves"),
     path('<str:id>/deleteleave',views.leavesDelete,name="deleteleaves"),
