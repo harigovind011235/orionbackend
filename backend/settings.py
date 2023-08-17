@@ -13,6 +13,12 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['194.163.159.41','127.0.0.1']
 
+INTERNAL_IPS = [
+   # ...
+   '127.0.0.1',
+   # ...
+]
+
 
 # Application definition
 
@@ -29,6 +35,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'django_admin_listfilter_dropdown',
+    'debug_toolbar',
 ]
 
 MIDDLEWARE = [
@@ -40,6 +47,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 REST_FRAMEWORK = {
@@ -106,14 +114,25 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'orionlive',
+#         'USER': 'postgres',
+#         'PASSWORD': 'harry007',
+#         'HOST': '127.0.0.1',
+#         'PORT': '5432',
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'orionlive',
-        'USER': 'postgres',
+        'USER': 'harigovind',
         'PASSWORD': 'harry007',
         'HOST': '127.0.0.1',
-        'PORT': '5432',
+        'PORT': '5433',
     }
 }
 

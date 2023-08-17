@@ -11,7 +11,6 @@ from django.core.validators import RegexValidator
 numeric = RegexValidator(r'^[0-9+]', 'Only digit characters.')
 
 
-
 class Employee(models.Model):
     user = models.OneToOneField(User,on_delete=models.CASCADE,null=True,blank=True)
     employee_id = models.CharField(max_length=40,blank=True,null=True)
@@ -97,4 +96,4 @@ class Holiday(models.Model):
     id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
 
     def __str__(self):
-        return str(self.event+" "+self.region_applicable)
+        return str(self.event + " " + self.region_applicable)
