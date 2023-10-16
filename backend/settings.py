@@ -36,6 +36,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_admin_listfilter_dropdown',
     'debug_toolbar',
+    'django_filters',
+    'django_apscheduler',
 ]
 
 MIDDLEWARE = [
@@ -48,6 +50,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'user.middlewares.RequestLoggingMiddleware',
+    'user.middlewares.RequestTimingMiddleware',
+    'user.middlewares.GzipMiddleware',
+    # 'user.middlewares.SimpleBaseAuthMiddleware'
 ]
 
 REST_FRAMEWORK = {
@@ -113,7 +119,6 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -133,13 +138,12 @@ DATABASES = {
         'PASSWORD': 'harry007',
         'HOST': '127.0.0.1',
         'PORT': '5433',
-    }
+    },
 }
 
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -158,7 +162,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -176,19 +179,25 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'hrmorion@labglo.com'
 EMAIL_HOST_PASSWORD = 'Hrm23Orion*$B'
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.1/howto/static-files/
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
+        'LOCATION': '127.0.0.1:11211',  # Default IP and port
+    }
+}
+
 
 STATIC_URL = '/static/'
 MEDIA_URL = '/images/'
-
 import os
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-
-STATICFILES_DIRS= [
-    BASE_DIR / 'assets'
-]
-
+STATICFILES_DIRS= [BASE_DIR / 'assets']
 MEDIA_ROOT = 'assets/images'
 
+
 CORS_ALLOW_ALL_ORIGINS = True
+
+
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
+APSCHEDULER_RUN_NOW_TIMEOUT = 25  # Seconds

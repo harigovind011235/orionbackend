@@ -1,4 +1,3 @@
-
 from rest_framework import serializers
 from .models import Employee,Leave,DailyHour,RemainingLeave, Holiday
 
@@ -7,7 +6,6 @@ class EmployeeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
         fields = '__all__'
-
 
 
 class LeaveSerializer(serializers.ModelSerializer):
@@ -21,27 +19,30 @@ class DailyHourSerializer(serializers.ModelSerializer):
         model = DailyHour
         fields = '__all__'
 
+
 class HolidaySerializer(serializers.ModelSerializer):
     class Meta:
         model = Holiday
         fields = '__all__'
+
 
 class RemainingLeavesSerializer(serializers.ModelSerializer):
     class Meta:
         model = RemainingLeave
         fields = '__all__'
 
+
 class PendingLeaveSerializer(serializers.Serializer):
     employee_name = serializers.SerializerMethodField()
     employee_id = serializers.SerializerMethodField()
-    count = serializers.SerializerMethodField()
+    # count = serializers.SerializerMethodField()
 
 
     def get_employee_name(self, obj):
         return obj['employee__name']
 
-    def get_count(self, obj):
-        return obj['count']
+    # def get_count(self, obj):
+    #     return obj['count']
 
     def get_employee_id(self,obj):
         return obj['employee_id']

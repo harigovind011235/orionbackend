@@ -1,20 +1,23 @@
+import django_filters
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view,permission_classes
+from django_filters import rest_framework as filters
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
+from rest_framework.generics import GenericAPIView,ListCreateAPIView,ListAPIView,RetrieveAPIView,UpdateAPIView,DestroyAPIView
+from rest_framework.mixins import CreateModelMixin,ListModelMixin,RetrieveModelMixin,UpdateModelMixin,DestroyModelMixin
+from rest_framework import status
 from .models import Employee,DailyHour,Leave,RemainingLeave, Holiday
 from .serializers import EmployeeSerializer,LeaveSerializer,DailyHourSerializer,RemainingLeavesSerializer, PendingLeaveSerializer, AllLeaveSerializer, HolidaySerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth import update_session_auth_hash
 from django.db.models import Count, Q
-from django.contrib.auth.models import User
-from django.contrib import messages
 from django.utils import timezone
 from datetime import datetime
-import json
 
 
 
@@ -33,7 +36,9 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 
 class GetUserRoutes(APIView):
-    def get(self,request):
+
+    @method_decorator(cache_page(60*1))
+    def get(self, request):
         routes = [
             {'GET': 'api/user/all'},
             {'GET': 'api/user/id'},
@@ -48,77 +53,63 @@ class GetUserRoutes(APIView):
         ]
         return Response(routes)
 
-@api_view(['GET'])
-def getAllPendingLeaves(request):
 
-    class AllPendingLeavesPagination(PageNumberPagination):
-        page_size = 20
-        page_size_query_param = 'page_size'
-        max_page_size = 1000
-        page_query_param = 'page'
-
-    paginator = AllPendingLeavesPagination()
-    pending_leaves = Leave.objects.filter(status=False).values('employee__name','employee_id').annotate(count=Count('employee_id'))
-    result_page = paginator.paginate_queryset(pending_leaves, request)
-    serializer = PendingLeaveSerializer(result_page,many=True)
-    return Response(serializer.data)
-
-
-@api_view(['GET'])
-def getLeavesForApproval(request,id):
-
-    employee = Employee.objects.get(pk=id)
-    employee_pending_leaves = employee.leave_set.filter(status=False)
-    pending_leaves = []
-    for leave in employee_pending_leaves:
-        data = {}
-        data['leave_applied'] = leave.date_of_leave
-        data['end_date_of_leave'] = leave.end_date_of_leave
-        data['leave_notes'] = leave.leave_notes
-        data['no_of_leaves'] = leave.no_of_leaves_required
-        data['leave_type'] = leave.leave_type
-        data['leave_id'] = leave.id
-        data['half_day'] = leave.half_day
-        pending_leaves.append(data)
-
-    return Response(pending_leaves)
-
-
-# @api_view(['GET'])
-# # @permission_classes([IsAuthenticated])
-# def getAllUsers(request):
-#     class EmployeePagination(PageNumberPagination):
-#         page_size = 20
-#         page_size_query_param = 'page_size'
-#         max_page_size = 1000
-#         page_query_param = 'page'
-#
-#     paginator = EmployeePagination()
-#     all_employees = Employee.objects.all().order_by('date_of_joining')
-#     result_page = paginator.paginate_queryset(all_employees, request)
-#     serializer = EmployeeSerializer(result_page, many=True)
-#     return paginator.get_paginated_response(serializer.data)
-
-
-class ListEmployees(APIView):
+class ListRetrieveUpdateEmployees(CreateModelMixin,ListModelMixin,UpdateModelMixin,RetrieveModelMixin,DestroyModelMixin,GenericAPIView):
 
     class EmployeePagination(PageNumberPagination):
-        page_size = 10
+        page_size = 2
         page_size_query_param = 'page_size'
         max_page_size = 100
         page_query_param = 'page'
 
-    def get(self,request):
-        paginator = self.EmployeePagination()
-        all_employees = Employee.objects.all().order_by('date_of_joining')
-        result_page = paginator.paginate_queryset(all_employees,request)
-        serializer = EmployeeSerializer(result_page,many=True)
-        return paginator.get_paginated_response(serializer.data)
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+    pagination_class = EmployeePagination
+
+    @method_decorator(cache_page(60 * 2))
+    def get(self,request,*args,**kwargs):
+        pk = kwargs.get('pk')
+        if pk is not None:
+            return self.retrieve(request,*args,**kwargs)
+        return self.list(request,*args,**kwargs)
 
 
-@api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-def getAllLeaves(request):
+    def post(self,request,*args,**kwargs):
+        return self.create(request,*args,**kwargs)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data = request.data)
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response({"message":"Employee Created Successfully"},status=status.HTTP_201_CREATED,headers=headers)
+        else:
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+
+    def put(self,request,*args,**kwargs):
+        return self.update(request,*args,**kwargs)
+    def update(self, request, *args, **kwargs):
+        employee_instance = self.get_object()
+        serializer = self.get_serializer(instance=employee_instance,data=request.data)
+        if serializer.is_valid():
+            self.perform_update(serializer)
+            return Response({"message":"Employee Updated Successfully"},status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors,status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+    def delete(self,request,*args,**kwargs):
+        return self.destroy(request,*args,**kwargs)
+    def destroy(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            self.perform_destroy(instance)
+            return Response({"message":"Employee Deleted Successfully"},status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"message":"Not Deleted","error":e})
+
+
+class AllLeavesListView(ListAPIView):
 
     class AllLeavesPagination(PageNumberPagination):
         page_size = 20
@@ -126,25 +117,303 @@ def getAllLeaves(request):
         max_page_size = 1000
         page_query_param = 'page'
 
-    paginator = AllLeavesPagination()
-    pending_leaves = Leave.objects.filter(status=False, rejected=False).values('employee_id','employee__name','leave_type',
-                    'date_of_leave', 'end_date_of_leave', 'half_day','rejected','leave_notes','leave_type','no_of_leaves_required','status','id').annotate(count=Count('employee_id'))
-    result_page = paginator.paginate_queryset(pending_leaves, request)
-    serializer = AllLeaveSerializer(result_page,many=True)
-    total_pending_leaves = 0
-    for item in pending_leaves:
-        total_pending_leaves += item['count']
-    context = {'data':serializer.data, 'total_pending_leaves':total_pending_leaves}
-    return Response(context)
+    serializer_class = AllLeaveSerializer
+    pagination_class = AllLeavesPagination
+
+    def get_queryset(self):
+        pending_leaves = Leave.objects.filter(status=False, rejected=False).values('employee_id', 'employee__name',
+         'leave_type','date_of_leave', 'end_date_of_leave','half_day', 'rejected','leave_notes', 'leave_type',
+         'no_of_leaves_required', 'status','id')
+        return pending_leaves
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        paginator = self.pagination_class()
+        result_page = paginator.paginate_queryset(queryset, request)
+        serializer = self.serializer_class(result_page, many=True)
+
+        total_pending_leaves = len(list(queryset))
+        context = {'data': serializer.data, 'total_pending_leaves': total_pending_leaves}
+        return Response(context)
 
 
-#To show the holiday
-@api_view(['GET'])
-def getAllHolidays(request):
+class GetIndividualEmployeeLeaves(ListAPIView):
+    serializer_class = LeaveSerializer
 
-    holiday_table = Holiday.objects.all().order_by('date_of_holiday')
-    serializer = HolidaySerializer(holiday_table,many=True)
-    return Response(serializer.data)
+    def get_queryset(self):
+        id = self.kwargs['id']
+        try:
+            employee = Employee.objects.get(pk=id)
+        except Employee.DoesNotExist:
+            employee = None
+        return employee
+
+    def list(self, request, *args, **kwargs):
+        employee = self.get_queryset()
+        if not employee:
+            return Response({"message":"Employee Does Not Exists"},status=status.HTTP_404_NOT_FOUND)
+        pending_leaves = employee.leave_set.filter(status=False,rejected=False)
+        serializer = self.serializer_class(pending_leaves,many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+
+
+class GetCreateUpdateDeleteHolidays(ListModelMixin,RetrieveModelMixin,CreateModelMixin,UpdateModelMixin,DestroyModelMixin,GenericAPIView):
+
+    class HolidaysPagination(PageNumberPagination):
+        page_size = 2
+        page_size_query_param = 'page_size'
+        max_page_size = 100
+        page_query_param = 'page'
+
+    queryset = Holiday.objects.all().order_by('date_of_holiday')
+    serializer_class = HolidaySerializer
+    pagination_class = HolidaysPagination
+
+    def get(self, request, *args, **kwargs):
+        pk = kwargs.get('pk')
+        if pk is not None:
+            return self.retrieve(request, *args, **kwargs)
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response({"message": "Holiday Created Successfully"}, status=status.HTTP_201_CREATED,
+                            headers=headers)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+    def update(self, request, *args, **kwargs):
+        employee_instance = self.get_object()
+        serializer = self.get_serializer(instance=employee_instance, data=request.data,partial=True)
+        if serializer.is_valid():
+            self.perform_update(serializer)
+            return Response({"message": "Holiday Updated Successfully"}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+    def destroy(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            self.perform_destroy(instance)
+            return Response({"message": "Holiday Deleted Successfully"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"message": "Not Deleted", "error": e})
+
+
+class ChangePassword(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self,request,id,format=None):
+        employee = get_object_or_404(Employee,pk=id)
+        user = employee.user
+
+        try:
+            new_password_data = request.data
+        except:
+            new_password_data = None
+
+        if new_password_data:
+            current_password = new_password_data.get('current_password')
+            new_password = new_password_data.get('new_password')
+
+            if user.check_password(current_password):
+                user.set_password(new_password)
+                user.save()
+                return Response({"Message":"Password Changed Successfully"})
+
+
+class GetCreateEmployeeLeaves(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def get_employee(self):
+        return get_object_or_404(Employee, pk=self.kwargs['id'])
+
+    def get(self,request,id,format=None):
+        employee = self.get_employee()
+        employee_leaves = Leave.objects.filter(employee=employee)
+        serializer = LeaveSerializer(employee_leaves,many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+
+    def post(self,request,id,format=None):
+        employee = self.get_employee()
+        data = request.data
+        leave_instance = Leave.objects.create(
+            employee=employee,
+            leave_type=data.get('leaveType'),
+            leave_notes=data.get('leaveNotes'),
+            date_of_leave=data.get('leaveDate'),
+            end_date_of_leave=data.get('EndleaveDate'),
+            no_of_leaves_required=data.get('noOfLeaves'),
+            half_day=data.get('half_day')
+        )
+        return Response("Leave Applied Successfully",status=status.HTTP_201_CREATED)
+
+
+class UpdateLeaveStatusAdmin(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self,request,id,format=None):
+        employee = get_object_or_404(Employee,pk=id)
+        remaining_leaves = RemainingLeave.objects.get(employee=employee)
+
+        try:
+            leave_table_data = request.data
+        except:
+            leave_table_data = None
+
+        if leave_table_data:
+            changes = {}
+            for data in leave_table_data:
+                leavetype = data.get('leave_type')
+                if leavetype == 1:
+                    changes['casual_leave'] = data.get('no_of_leaves')
+                elif leavetype == 2:
+                    changes['sick_leave'] = data.get('no_of_leaves')
+                elif leavetype == 3:
+                    changes['emergency_leave'] = data.get('no_of_leaves')
+                elif leavetype == 4:
+                    changes['comp_off'] = data.get('no_of_leaves')
+                elif leavetype == 5:
+                    changes['optional_holidays'] = data.get('no_of_leaves')
+
+            for field,value in changes.items():
+                setattr(remaining_leaves,field,value)
+
+            remaining_leaves.save()
+
+            return Response({"message":"Leave Updated Successfully"},status=status.HTTP_200_OK)
+        else:
+            return Response("Invalid data", status=status.HTTP_400_BAD_REQUEST)
+
+
+class RemainingLeavesDetailView(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = RemainingLeavesSerializer
+
+    def get_object(self):
+        employee = get_object_or_404(Employee,pk=self.kwargs['id'])
+        return get_object_or_404(RemainingLeave,employee=employee)
+
+
+class LeaveUpdateView(UpdateAPIView):
+    # permission_classes = [IsAuthenticated]
+    serializer_class = RemainingLeavesSerializer
+
+    def update(self,request,*args,**kwargs):
+        employee_leave = self.get_object()
+        status = request.data.get('leavestatus',None)
+        attribute_map = {
+            'Pending':{},
+            'Approved':{'status':True},
+            'Rejected':{'rejected':True}
+        }
+        try:
+            updates = attribute_map.get(status,{})
+            for field,value in updates.items():
+                setattr(employee_leave,field,value)
+
+            employee_leave.save()
+        except Exception as e:
+            return Response(f"Failed Approving Leave -> {e}")
+
+        return Response({"message":"Update Leave Successfully"},status=status.HTTP_200_OK)
+
+
+class LeaveDeleteView(DestroyAPIView):
+    queryset = Leave.objects.all()
+
+    def destroy(self, request, *args, **kwargs):
+        current_leave = self.get_object()
+        if current_leave.status == False:
+            current_leave.delete()
+            return Response({"Message":"Deleted One Leave"},status=status.HTTP_200_OK)
+        else:
+            return Response("Already Approved")
+
+
+class DailyHourView(ListCreateAPIView):
+
+    class DailyHourpagination(PageNumberPagination):
+        page_size = 25
+        page_size_query_param = 'page_size'
+        max_page_size = 1000
+        page_query_param = 'page'
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = DailyHourSerializer
+    pagination_class = DailyHourpagination
+
+    def get_queryset(self):
+        employee = get_object_or_404(Employee,pk=self.kwargs['id'])
+        return employee.dailyhour_set.all().order_by('-created')
+
+    def create(self,request,*args,**kwargs):
+        employee = get_object_or_404(Employee,pk=self.kwargs['id'])
+        today = timezone.localtime().date()
+        entry_exists = DailyHour.objects.filter(created__date=today,employee=employee).exists()
+
+        if not entry_exists:
+            daily_hour_data = request.data
+            daily_hour_table = DailyHour.objects.create(
+                employee=employee,
+                checkin=daily_hour_data.get('loginTime'),
+                date_of_checkin=daily_hour_data.get('loginDate'),
+                checkout=daily_hour_data.get('logoutTime')
+            )
+            return Response('Success', status=status.HTTP_201_CREATED)
+
+
+class DailyHourDetailView(UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = DailyHour.objects.all()
+    serializer_class = DailyHourSerializer
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        lastentried_dailyhour = instance
+
+        if lastentried_dailyhour:
+            daily_hour_data = request.data
+            lastentried_dailyhour.checkout = daily_hour_data.get('logOutTime')
+
+            if lastentried_dailyhour.checkin and lastentried_dailyhour.checkout:
+                try:
+                    checkintime = datetime.strptime(lastentried_dailyhour.checkin,'%H:%M:%S')
+                    checkouttime = datetime.strptime(lastentried_dailyhour.checkout,'%H:%M:%S')
+                    work_hours_today = checkouttime - checkintime
+                except:
+                    work_hours_today = None
+
+                lastentried_dailyhour.hours_perday = work_hours_today if work_hours_today else None
+                lastentried_dailyhour.save()
+                return Response('Success')
+
+
+class EmployeesLeaveSearchView(ListAPIView):
+
+    class LeaveFilter(filters.FilterSet):
+        name = django_filters.CharFilter(field_name='employee__name',lookup_expr='icontains')
+        status = django_filters.BooleanFilter()
+        rejected = django_filters.BooleanFilter()
+        half_day = django_filters.BooleanFilter()
+        leave_type = django_filters.CharFilter()
+        class Meta:
+            model = Leave
+            fields = ['name','status','rejected','half_day','leave_type']
+
+    queryset = Leave.objects.all()
+    serializer_class = LeaveSerializer
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_class = LeaveFilter
 
 
 @api_view(['GET'])
@@ -260,207 +529,3 @@ def getSearchApi(request):
     context = {'data':leaves_filter, 'total_pending_leaves':total_pending_leaves}
     return Response(context)
 
-
-@api_view(['PUT'])
-@permission_classes([IsAuthenticated])
-def setUpdateProfile(request, id):
-    # if request.method == 'PUT':
-    employee = Employee.objects.get(pk=id)
-
-    try:
-        profile_data = json.loads(request.body)
-    except:
-        profile_data = None
-    if request.FILES:
-        employee.profile_image = request.FILES.get('profile_image')
-        employee.save()
-    if profile_data:
-        for key,value in profile_data.items():
-            setattr(employee,key,value)
-            employee.save()
-    return Response("Success")
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def setChangePassword(request,id):
-    if request.method == 'POST':
-        employee = Employee.objects.get(pk=id)
-        user = employee.user
-
-        try:
-            changepassword_data = json.loads(request.body)
-        except:
-            changepassword_data = None
-        if changepassword_data:
-            current_password = changepassword_data.get('current_password')
-            new_password = changepassword_data.get('new_password')
-
-
-            if employee.user.check_password(current_password):
-                user.set_password(new_password)
-                user.save()
-                messages.success(request, 'Your password was successfully updated!')
-
-                # Update the session authentication hash to prevent the user from being logged out
-                update_session_auth_hash(request, user)
-                return Response("Successfully change the password")
-            else:
-                return Response("Password doesn't match")
-
-
-
-# To store the applied leave by user
-@api_view(['GET','POST'])
-@permission_classes([IsAuthenticated])
-def getLeaves(request,id):
-
-    employee = get_object_or_404(Employee, pk=id)
-
-    if request.method == 'POST':
-        data = request.data
-        leave_table = Leave.objects.create(
-            employee=employee,
-            leave_type=data.get('leaveType'),
-            leave_notes=data.get('leaveNotes'),
-            date_of_leave=data.get('leaveDate'),
-            end_date_of_leave=data.get('EndleaveDate'),
-            no_of_leaves_required=data.get('noOfLeaves'),
-            half_day=data.get('half_day')
-        )
-
-        return Response("Success")
-
-    employee_leaves = Leave.objects.filter(employee=employee)
-    serializer = LeaveSerializer(employee_leaves, many=True)
-    return Response(serializer.data)
-
-
-# edit leave table by admin
-@api_view(['PUT'])
-@permission_classes([IsAuthenticated])
-def setLeaveTable(request,id):
-    # if request.method == 'PUT':
-    employee = Employee.objects.get(pk=id)
-    remaining_leaves = RemainingLeave.objects.get(employee=employee)
-    # except output in this format
-    # [{"no_of_leaves": 1, "leave_type": 4}, {"no_of_leaves": 1, "leave_type": 3},{"no_of_leaves": 1, "leave_type": 2},
-    # {"no_of_leaves": 1, "leave_type": 1},{"no_of_leaves": 1, "leave_type": 5}]
-    try:
-        leave_table_data = json.loads(request.body)
-    except:
-        leave_table_data = None
-    for data in leave_table_data:
-        leavetype = data.get('leave_type')
-        if leavetype == 1:
-            remaining_leaves.casual_leave = data.get('no_of_leaves')
-        elif leavetype == 2:
-            remaining_leaves.sick_leave = data.get('no_of_leaves')
-        elif leavetype == 3:
-            remaining_leaves.emergency_leave = data.get('no_of_leaves')
-        elif leavetype == 4:
-            remaining_leaves.comp_off = data.get('no_of_leaves')
-        elif leavetype == 5:
-            remaining_leaves.optional_holidays = data.get('no_of_leaves')
-
-        remaining_leaves.save()
-
-    return Response("Success")
-
-
-#get remaining leaves of each employee
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def getRemainingLeaves(request,id):
-    employee = Employee.objects.get(pk=id)
-    remaining_leaves = RemainingLeave.objects.get(employee=employee)
-    serializer = RemainingLeavesSerializer(remaining_leaves,many=False) if remaining_leaves else {}
-    if serializer:
-        return Response(serializer.data)
-    else:
-        return Response({})
-
-
-@api_view(['PUT'])
-def updateEmployeeLeave(request,id):
-    employee_leave = get_object_or_404(Leave, pk=id)
-    status = request.data.get('leavestatus', None)
-    attribute_map = {
-        'Pending': {},
-        'Approved': {'status': True},
-        'Rejected': {'rejected': True}
-    }
-    try:
-        updates = attribute_map.get(status, {})
-        for attr, value in updates.items():
-            setattr(employee_leave, attr, value)
-        employee_leave.save()
-    except Exception as e:
-        return Response("Failed Approving Leave -> {}".format(e))
-    return Response("Success")
-
-
-@api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
-def leavesDelete(request,id):
-
-    employee_leave = Leave.objects.get(pk=id)
-
-    if request.method == 'DELETE':
-        if employee_leave.status == False:
-            employee_leave.delete()
-            return Response("deleted one leave")
-        else:
-            return Response("Already Approved")
-
-
-@api_view(['GET','POST','PUT'])
-@permission_classes([IsAuthenticated])
-def getDailyHours(request,id):
-
-    employee = Employee.objects.get(pk=id)
-    today = timezone.localtime().date()
-    if request.method == 'POST':
-        daily_hour_table = DailyHour(employee=employee)
-        entry_exists = DailyHour.objects.filter(created__date=today,employee=employee).exists()
-        if not entry_exists:
-            daily_hour_data = json.loads(request.body)
-            daily_hour_table.employee = employee
-            daily_hour_table.checkin = daily_hour_data.get('loginTime')
-            daily_hour_table.date_of_checkin = daily_hour_data.get('loginDate')
-            daily_hour_table.checkout = daily_hour_data.get('logoutTime')
-            daily_hour_table.save()
-            return Response('Success')
-        else:
-            return Response('Already Exists')
-
-    if request.method == 'PUT':
-        try:
-            lastentried_dailyhour = employee.dailyhour_set.latest('created')
-        except:
-            lastentried_dailyhour = None
-        if lastentried_dailyhour:
-            daily_hour_data = json.loads(request.body)
-            lastentried_dailyhour.checkout = daily_hour_data.get('logOutTime')
-            if lastentried_dailyhour.checkin and lastentried_dailyhour.checkout:
-                try:
-                    checkintime = datetime.strptime(lastentried_dailyhour.checkin, '%H:%M:%S')
-                    checkouttime = datetime.strptime(lastentried_dailyhour.checkout, '%H:%M:%S')
-                    work_hours_today = checkouttime - checkintime
-                except:
-                    work_hours_today = None
-                lastentried_dailyhour.hours_perday = work_hours_today if work_hours_today else None
-            lastentried_dailyhour.save()
-            return Response('Success')
-
-    class DailyHourpagination(PageNumberPagination):
-        page_size = 25
-        page_size_query_param = 'page_size'
-        max_page_size = 1000
-        page_query_param = 'page'
-
-    paginator = DailyHourpagination()
-    employee_dailyhours = employee.dailyhour_set.all().order_by('-created')
-    result_page = paginator.paginate_queryset(employee_dailyhours, request)
-    serializer = DailyHourSerializer(result_page, many=True)
-    return paginator.get_paginated_response(serializer.data)
