@@ -11,7 +11,7 @@ SECRET_KEY = 'sap8d1y5xj-z@y10y4yh&njdm(v8-ka_08rf%n3kf-h5$97j+4'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['194.163.159.41','127.0.0.1']
+ALLOWED_HOSTS = ['194.163.159.41','127.0.0.1','www.thespendless.shop']
 
 INTERNAL_IPS = [
    # ...
