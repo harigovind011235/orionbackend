@@ -8,3 +8,7 @@ dailyreads/migrations/
 base/migrations/__pycache__/
 assets/images/
 .idea/
+
+*.pyc
+__pycache__/
+.env
