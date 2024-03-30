@@ -1,5 +1,7 @@
-
+import os
 from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv('.env')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -193,3 +195,43 @@ STATICFILES_DIRS= [
 MEDIA_ROOT = 'assets/images'
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'json': {
+            '()': 'json_log_formatter.JSONFormatter',
+        },
+    },
+    'handlers': {
+        'json_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.getenv('LOG_PATH'),
+            'formatter': 'json',
+        },
+    },
+    'loggers': {
+        'my_json': {
+            'handlers': ['json_file'],
+            'level': 'INFO',
+        },
+    },
+}
+
+# Modify the LOGGING dictionary as needed
+LOGGING['formatters']['json'] = {
+    '()': 'json_log_formatter.VerboseJSONFormatter',
+}
+# LOGGING['handlers']['json_file'] = {
+#     'level': 'INFO',
+#     'class': 'logging.FileHandler',
+#     'filename': os.getenv('LOG_PATH'),
+#     'formatter': 'json',
+# }
+# LOGGING['loggers']['my_json'] = {
+#     'handlers': ['json_file'],
+#     'level': 'INFO',
+# }

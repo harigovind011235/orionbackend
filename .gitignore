@@ -12,3 +12,4 @@ assets/images/
 *.pyc
 __pycache__/
 .env
+static/
